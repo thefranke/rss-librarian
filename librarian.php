@@ -42,8 +42,13 @@
 
     function fetch_rss_item($url)
     {
-        $rssurl = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . $url;
+        $rssurl = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . urlencode($url);
+        
         $rsstext = file_get_contents($rssurl);
+
+        // error handling remove everything until first <
+        $start = strpos($rsstext, "<");
+        $rsstext = substr($rsstext, $start);
         $xml = simplexml_load_string($rsstext);
         $oneitem = $xml->channel->item[0];
         return $oneitem;
