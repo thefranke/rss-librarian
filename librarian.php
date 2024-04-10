@@ -116,6 +116,13 @@
         file_put_contents($local_rssfile, $xml->asXml());
         return $param_url . " added";
     }
+
+    function count_feeds()
+    {
+        $directory = "subscriptions/";
+        $filecount = count(glob($directory . "*.xml"));
+        return $filecount;
+    }
 ?>
 
 <!DOCTYPE html>
@@ -178,6 +185,7 @@
             <h4>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h4>
             <br>
             <hr>
+            <h4>Instance managing <?php echo count_feeds() ?> feeds</h4>
         </div>
 <?php
     if ($param_url == "")
