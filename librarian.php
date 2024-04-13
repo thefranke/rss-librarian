@@ -20,22 +20,51 @@
     }
 
     $max_items = 100;
-    $base_url = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER["PHP_SELF"];
+    $url_base = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
+    $url_librarian = $url_base . $_SERVER["PHP_SELF"];
     $param_url = fetch_param("url");
     $param_id = fetch_param("id");
+    $dir_subs = "subscriptions";
     $local_rssfile = "";
 
-    function rss_template()
+    function update_rss_file()
     {
-        return '<?xml version="1.0" encoding="utf-8"?>
+        global $local_rssfile;
+        global $dir_subs;
+        global $url_base;
+        global $url_librarian;
+        global $param_id;
+
+        // check for subs dir
+        if (!is_dir($dir_subs))
+            mkdir($dir_subs);
+
+        $personal_url = $url_librarian . '?id=' . $param_id;
+
+        // recreate base file so changes in the header are put in with every new release
+        $new_rss_base_text = '<?xml version="1.0" encoding="utf-8"?>
         <rss version="2.0">
             <channel>
                 <title>RSS-Librarian</title>
-                <description>Readable bookmarks as RSS</description>
-                <link>https://github.com/thefranke/rss-librarian</link>
+                <description>A read-it-later service for RSS purists</description>
+                <link>' . $personal_url . '</link>
             </channel>
         </rss>
         ';
+
+        $rss_xml = simplexml_load_string($new_rss_base_text);
+
+        // try to open local subscriptions and copy items over
+        $local_rsstext = @file_get_contents($local_rssfile);
+        if ($local_rsstext != "") 
+        {
+            $old_rss_xml = simplexml_load_string($local_rsstext);
+            
+            foreach($old_rss_xml->channel->item as $item)
+                sxml_append($rss_xml->channel, $item);
+        }
+
+        return $rss_xml;
     }
 
     function sxml_append(SimpleXMLElement $to, SimpleXMLElement $from) 
@@ -67,40 +96,20 @@
         global $param_url;
         global $local_rssfile;
         global $max_items;
-
-        // supplied url to rss-ify
-        if ($param_url == "")
-            return "No URL parameter supplied.";
+        global $dir_subs;
 
         // generate id if none is there
         $local_rsstext = "";
-        $is_new = false;
         if ($param_id == "")
         {
             $param_id = hash('sha256', random_bytes(18));
-            $local_rsstext = rss_template();
-            $is_new = true;
         }
 
-        $subsdir = "subscriptions";
-        if (!is_dir($subsdir))
-            mkdir($subsdir);
-
-        // try to open local subscriptions
-        $local_rssfile = $subsdir . "/" . $param_id . ".xml";
-        if ($local_rsstext == "")
-        {
-            $local_rsstext = @file_get_contents($local_rssfile);
-            if ($local_rsstext == "") 
-            {
-                $local_rsstext = rss_template();
-                $is_new = true;
-            }
-        }
-
-        $xml = simplexml_load_string($local_rsstext);
-
-        if (!$is_new)
+        $local_rssfile = $dir_subs . "/" . $param_id . ".xml";
+        
+        $xml = update_rss_file();
+        
+        if ($xml->channel->item)
         {
             // check max item count, remove anything beyond
             $c = $xml->channel->item->count();
@@ -126,7 +135,7 @@
 
         // write to rss file
         file_put_contents($local_rssfile, $xml->asXml());
-        return $param_url . " added";
+        return '<a href="' . $param_url . '">' . $param_url . '</a> added';
     }
 
     function count_feeds()
@@ -209,12 +218,12 @@
             $add_id = '<input type="hidden" id="id" name="id" value="'.$param_id.'">';
         }
 
-        print_r('Paste your URL here:<br><form action="'.$base_url.'"><input type="text" id="url" name="url">'.$add_id.'<br><input type="submit"></form>');
+        print_r('Paste your URL here:<br><form action="'.$url_librarian.'"><input type="text" id="url" name="url">'.$add_id.'<br><input type="submit"></form><br><br>');
     }
     else
     {
         $result = add_url();
-        $personal_url = $base_url . '?id=' . $param_id;
+        $personal_url = $url_librarian . '?id=' . $param_id;
 
         print_r($result . "<br><br>");
         print_r('<a href="' . $local_rssfile . '">Subscribe via RSS to your personal feed here</a><br><br>');
@@ -222,9 +231,12 @@
         print_r('OR<br><br>');
         print_r('Use <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">this boomarklet</a> to add the current open page<br><br>');
         print_r('OR<br><br>');
-        print_R('Bookmark <a href="'. $personal_url .'">this URL</a> and add a URL via the input field');
+        print_r('Bookmark <a href="'. $personal_url .'">this URL</a> and add a URL via the input field<br><br>');
+        print_r('OR<br><br>');
+        print_r('Preview your personal feed of bookmarks <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_rssfile) . '">with this url</a>');
     }
 ?>
+
     </div>
 </body>
 
