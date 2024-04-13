@@ -1,4 +1,11 @@
 <?php
+    /*
+     * RSS-Librarian - A read-it-later service for RSS purists
+     * 
+     * https://github.com/thefranke/rss-librarian
+     *
+     */
+
     function fetch_param($param)
     {
         $params = $_GET;
