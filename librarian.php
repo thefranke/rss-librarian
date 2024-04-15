@@ -26,6 +26,9 @@
     $param_id = fetch_param("id");
     $dir_subs = "subscriptions";
     $local_rssfile = "";
+    
+    if ($param_id)
+        $local_rssfile = $dir_subs . "/" . $param_id . ".xml";
 
     function update_rss_file()
     {
@@ -140,8 +143,8 @@
 
     function count_feeds()
     {
-        $directory = "subscriptions/";
-        $filecount = count(glob($directory . "*.xml"));
+        global $dir_subs;
+        $filecount = count(glob($dir_subs . "/*.xml"));
         return $filecount;
     }
 ?>
@@ -150,6 +153,12 @@
 <html lang="en">
 <head>
   <title>RSS-Librarian</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <?php
+    if ($param_id != "") 
+        print('<link rel="alternate" type="application/rss+xml" title="Personal feed (' . substr($param_id, 0, 4) . ')" href="' . $local_rssfile . '">');
+  ?>
+
   <style>
     html {
       font-family: monospace;
@@ -191,7 +200,7 @@
             color: #99c683;   
         }
         img {
-            filter:invert();
+            filter:invert(1);
         }
     }
   </style>
@@ -214,7 +223,7 @@
         $add_id = "";
         if ($param_id != "") 
         {
-            print_r('Adding to personal feed ' . $param_id. '<br><br>');
+            print_r('Adding to <a href="' . $local_rssfile . '">personal feed</a> (' . substr($param_id, 0, 4) . '), preview <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_rssfile) . '">it here</a><br><br>');
             $add_id = '<input type="hidden" id="id" name="id" value="'.$param_id.'">';
         }
 
@@ -227,13 +236,11 @@
 
         print_r($result . "<br><br>");
         print_r('<a href="' . $local_rssfile . '">Subscribe via RSS to your personal feed here</a><br><br>');
-        print_r('Add more links to your personal feed via<br>' . $personal_url. '&url=YOUR_URL_HERE<br><br>');
-        print_r('OR<br><br>');
         print_r('Use <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">this boomarklet</a> to add the current open page<br><br>');
         print_r('OR<br><br>');
         print_r('Bookmark <a href="'. $personal_url .'">this URL</a> and add a URL via the input field<br><br>');
         print_r('OR<br><br>');
-        print_r('Preview your personal feed of bookmarks <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_rssfile) . '">with this url</a>');
+        print_r('Preview your personal feed <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_rssfile) . '">with this url</a>');
     }
 ?>
 
