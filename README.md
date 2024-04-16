@@ -29,7 +29,7 @@ Go to your librarian instance ([try here](https://alternator.hstn.me/librarian.p
 
 On the next page you will see two things:
 1. Your personal RSS feed (generated automatically as a random hash)
-2. 3 ways how to add new links to your personal feed: A parameterized URL, a bookmarklet that lets you just add the current page open in your browser, and a personal link that lets you add URLs via the Librarian's interface.
+2. 3 ways how to use your personal feed: A bookmarklet that lets you just add the current page open in your browser, a personal link that lets you add URLs via the Librarian's interface and a preview of your feed using a RSS web interface.
 
 **It is important** - after adding your first link - to store this personal hash of yours somewhere so you can keep adding links to your feed (instead of creating a new one accidentally).
 
