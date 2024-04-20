@@ -132,7 +132,7 @@
 
         // fetch rss content and add
         $item = fetch_rss_item($param_url);
-        $pub_date= date("D, d M Y H:i:s T");
+        $pub_date = date("D, d M Y H:i:s T");
         $item->addChild("pubDate", $pub_date);
         sxml_append($xml->channel, $item);
 
@@ -211,36 +211,30 @@
             <img alt="" src="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
 
             <h1>RSS-Librarian</h1>
-            <h3></h3>
             <h4>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h4>
             <br>
             <hr>
             <h4>Instance managing <?php echo count_feeds() ?> feeds</h4>
         </div>
 <?php
-    if ($param_url == "")
+    $add_id = "";
+    if ($param_id != "") 
     {
-        $add_id = "";
-        if ($param_id != "") 
-        {
-            print_r('Adding to <a href="' . $local_rssfile . '">personal feed</a> (' . substr($param_id, 0, 4) . '), preview <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_rssfile) . '">it here</a><br><br>');
-            $add_id = '<input type="hidden" id="id" name="id" value="'.$param_id.'">';
-        }
-
-        print_r('Paste your URL here:<br><form action="'.$url_librarian.'"><input type="text" id="url" name="url">'.$add_id.'<br><input type="submit"></form><br><br>');
+        print_r('Subscribe to <a href="' . $local_rssfile . '">personal feed</a> (' . substr($param_id, 0, 4) . '), preview <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_rssfile) . '">it here</a><br><br>');
+        $add_id = '<input type="hidden" id="id" name="id" value="' . $param_id . '">';
     }
-    else
+
+    print_r('Paste a new URL here:<br><form action="' . $url_librarian . '"><input type="text" id="url" name="url">'.$add_id.'<br><input type="submit" value="Add to feed"></form><br><br>');
+    
+    if ($param_url != "")
     {
         $result = add_url();
         $personal_url = $url_librarian . '?id=' . $param_id;
 
         print_r($result . "<br><br>");
-        print_r('<a href="' . $local_rssfile . '">Subscribe via RSS to your personal feed here</a><br><br>');
         print_r('Use <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">this boomarklet</a> to add the current open page<br><br>');
         print_r('OR<br><br>');
         print_r('Bookmark <a href="'. $personal_url .'">this URL</a> and add a URL via the input field<br><br>');
-        print_r('OR<br><br>');
-        print_r('Preview your personal feed <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_rssfile) . '">with this url</a>');
     }
 ?>
 
