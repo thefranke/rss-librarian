@@ -165,7 +165,7 @@
 
     // user exists?
     if ($param_id != "") 
-        print('<link rel="alternate" type="application/rss+xml" title="Personal feed (' . substr($param_id, 0, 4) . ')" href="' . get_local_feed_file($param_id) . '">');
+        print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_local_feed_file($param_id) . '">');
     else
         $user_id = hash('sha256', random_bytes(18));
   ?>
@@ -173,7 +173,7 @@
   <style>
     html {
       font-family: monospace;
-      font-size: 16px;
+      font-size: 12pt;
       color: #66397C;
       text-align: center;
     }
@@ -194,10 +194,10 @@
     }
     #header {
         text-align: center;
-        margin: 40pt;
+        margin: 24pt;
     }
     h1, h2, h3, h4 {
-        margin: 5pt;
+        margin: 0;
     }
     img {
         width: 120pt;
@@ -228,33 +228,34 @@
             <h4>Instance managing <?php echo count_feeds() ?> feeds</h4>
         </div>
 <?php
-    $add_id = "";
-
     // Check if parameter was supplied to distinguish new users from existing ones
     if ($param_id != "") 
     {
+        $personal_url = $g_url_librarian . '?id=' . $user_id;
+        $feed_id = get_feed_id($user_id);
         $local_feed_file = get_local_feed_file($user_id);
-        print_r('Subscribe to your <a href="' . $local_feed_file . '">personal feed (' . substr($user_id, 0, 4) . ')</a>, preview <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">it here</a><br><br>');
+        print_r('<h4>Managing articles of ' . substr($user_id, 0, 4) . '...' . substr($user_id, -4) .':</h4>');
+        print_r('Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a><br><br><br>');
     }
 
-    print_r('Paste a new URL here:<br>
+    print_r('<h4>Paste a new URL here:</h4>
              <form action="' . $g_url_librarian . '">
              <input type="text" id="url" name="url">
              <input type="hidden" id="id" name="id" value="' . $user_id . '">
              <br>
              <input type="submit" value="Add to feed">
-             </form>
-             <br><br>');
+             </form><br><br>');
     
     if ($param_url != "")
     {
         $result = add_url($user_id, $param_url);
-        $personal_url = $g_url_librarian . '?id=' . $user_id;
+        print_r($result);
+    }
 
-        print_r($result . "<br><br>");
-        print_r('Use <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">this boomarklet</a> to add the current open page<br><br>');
-        print_r('OR<br><br>');
-        print_r('Bookmark <a href="'. $personal_url .'">this URL</a> and add a URL via the input field<br><br>');
+    if ($param_id)
+    {
+        print_r('<br><br><br>');
+        print_r('<h4>More tools:</h4><a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>');
     }
 ?>
 
