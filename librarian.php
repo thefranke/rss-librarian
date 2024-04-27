@@ -7,10 +7,10 @@
      */
 
     // Global configuration
-    $max_items = 100;
-    $url_base = 'http' . (isset($_SERVER['HTTPS']) ? '' : '') . '://' . $_SERVER['HTTP_HOST'];
-    $url_librarian = $url_base . $_SERVER["PHP_SELF"];
-    $dir_subs = "feeds";
+    $g_max_items = 100;
+    $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? '' : '') . '://' . $_SERVER['HTTP_HOST'];
+    $g_url_librarian = $g_url_base . $_SERVER["PHP_SELF"];
+    $g_dir_subs = "feeds";
     
     // Fetch parameters given to librarian
     function fetch_param($param)
@@ -35,23 +35,22 @@
     // Produce path for local feed file
     function get_local_feed_file($param_id)
     {
-        global $dir_subs;
+        global $g_dir_subs;
         $file_hash = get_feed_id($param_id);
-        return $dir_subs . "/" . $file_hash . ".xml";
+        return $g_dir_subs . "/" . $file_hash . ".xml";
     }
 
     // Update feed files with new header
     function update_feed_file($user_id)
     {
-        global $dir_subs;
-        global $url_base;
-        global $url_librarian;
+        global $g_dir_subs;
+        global $g_url_librarian;
 
         // check for subs dir
-        if (!is_dir($dir_subs))
-            mkdir($dir_subs);
+        if (!is_dir($g_dir_subs))
+            mkdir($g_dir_subs);
 
-        $personal_url = $url_librarian . '?id=' . $user_id;
+        $personal_url = $g_url_librarian . '?id=' . $user_id;
 
         // recreate base file so changes in the header are put in with every new release
         $new_rss_base_text = '<?xml version="1.0" encoding="utf-8"?>
@@ -108,8 +107,8 @@
     // Add URL to personal feed
     function add_url($user_id, $param_url)
     {
-        global $max_items;
-        global $dir_subs;
+        global $g_max_items;
+        global $g_dir_subs;
 
         $local_feed_file = get_local_feed_file($user_id);
         
@@ -119,7 +118,7 @@
         {
             // check max item count, remove anything beyond
             $c = $xml->channel->item->count();
-            while ($c > $max_items)
+            while ($c > $g_max_items)
             {
                 unset($xml->channel->item[$c - 1]);
                 $c--;
@@ -147,8 +146,8 @@
     // Count number of feeds in feed directory
     function count_feeds()
     {
-        global $dir_subs;
-        $filecount = count(glob($dir_subs . "/*.xml"));
+        global $g_dir_subs;
+        $filecount = count(glob($g_dir_subs . "/*.xml"));
         return $filecount;
     }
 ?>
@@ -235,16 +234,22 @@
     if ($param_id != "") 
     {
         $local_feed_file = get_local_feed_file($user_id);
-        print_r('Subscribe to your <a href="' . $local_feed_file . '">personal feed</a> (' . substr($user_id, 0, 4) . '), preview <a href="https://feedreader.xyz/?url=' . urlencode($url_base . '/' . $local_feed_file) . '">it here</a><br><br>');
-        $add_id = '<input type="hidden" id="id" name="id" value="' . $user_id . '">';
+        print_r('Subscribe to your <a href="' . $local_feed_file . '">personal feed (' . substr($user_id, 0, 4) . ')</a>, preview <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">it here</a><br><br>');
     }
 
-    print_r('Paste a new URL here:<br><form action="' . $url_librarian . '"><input type="text" id="url" name="url">' . $add_id . '<br><input type="submit" value="Add to feed"></form><br><br>');
+    print_r('Paste a new URL here:<br>
+             <form action="' . $g_url_librarian . '">
+             <input type="text" id="url" name="url">
+             <input type="hidden" id="id" name="id" value="' . $user_id . '">
+             <br>
+             <input type="submit" value="Add to feed">
+             </form>
+             <br><br>');
     
     if ($param_url != "")
     {
         $result = add_url($user_id, $param_url);
-        $personal_url = $url_librarian . '?id=' . $user_id;
+        $personal_url = $g_url_librarian . '?id=' . $user_id;
 
         print_r($result . "<br><br>");
         print_r('Use <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">this boomarklet</a> to add the current open page<br><br>');
