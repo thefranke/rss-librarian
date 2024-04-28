@@ -10,7 +10,7 @@
     $g_max_items = 100;
     $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? '' : '') . '://' . $_SERVER['HTTP_HOST'];
     $g_url_librarian = $g_url_base . $_SERVER["PHP_SELF"];
-    $g_dir_subs = "feeds";
+    $g_dir_feeds = "feeds";
     
     // Fetch parameters given to librarian
     function fetch_param($param)
@@ -35,20 +35,20 @@
     // Produce path for local feed file
     function get_local_feed_file($param_id)
     {
-        global $g_dir_subs;
+        global $g_dir_feeds;
         $file_hash = get_feed_id($param_id);
-        return $g_dir_subs . "/" . $file_hash . ".xml";
+        return $g_dir_feeds . "/" . $file_hash . ".xml";
     }
 
     // Update feed files with new header
     function update_feed_file($user_id)
     {
-        global $g_dir_subs;
+        global $g_dir_feeds;
         global $g_url_librarian;
 
         // check for subs dir
-        if (!is_dir($g_dir_subs))
-            mkdir($g_dir_subs);
+        if (!is_dir($g_dir_feeds))
+            mkdir($g_dir_feeds);
 
         $personal_url = $g_url_librarian . '?id=' . $user_id;
 
@@ -108,7 +108,6 @@
     function add_url($user_id, $param_url)
     {
         global $g_max_items;
-        global $g_dir_subs;
 
         $local_feed_file = get_local_feed_file($user_id);
         
@@ -146,8 +145,8 @@
     // Count number of feeds in feed directory
     function count_feeds()
     {
-        global $g_dir_subs;
-        $filecount = count(glob($g_dir_subs . "/*.xml"));
+        global $g_dir_feeds;
+        $filecount = count(glob($g_dir_feeds . "/*.xml"));
         return $filecount;
     }
 ?>
