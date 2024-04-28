@@ -8,7 +8,7 @@
 
     // Global configuration
     $g_max_items = 100;
-    $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? '' : '') . '://' . $_SERVER['HTTP_HOST'];
+    $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
     $g_url_librarian = $g_url_base . $_SERVER["PHP_SELF"];
     $g_dir_feeds = "feeds";
     
