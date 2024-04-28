@@ -29,7 +29,10 @@
     // Turn user ID into feed ID
     function get_feed_id($user_id)
     {
-        return hash('sha256', $user_id);
+        return $user_id;
+        
+        // Later feature: Disconnect feed from user
+        //return hash('sha256', $user_id);
     }
 
     // Produce path for local feed file
