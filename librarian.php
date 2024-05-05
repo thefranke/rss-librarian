@@ -6,6 +6,10 @@
      *
      */
 
+    use fivefilters\Readability\Readability;
+    use fivefilters\Readability\Configuration;
+    use fivefilters\Readability\ParseException;
+
     // Global configuration
     $g_max_items = 100;
     $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
@@ -92,20 +96,83 @@
         $firstSibling = $toDom->getElementsByTagName('item')->item(0);
         $toDom->insertBefore($new_node, $firstSibling);
     }
-
-    // Turn URL article into a readable feed item
-    function fetch_feed_item($url)
+    
+    // Create XML element for an RSS item
+    function make_feed_item($url, $title, $author, $content)
     {
-        $feed_url = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . urlencode($url);
-        
-        $feed_item = file_get_contents($feed_url);
+        $pub_date = date("D, d M Y H:i:s T");
 
-        // error handling remove everything until first <
-        $start = strpos($feed_item, "<");
-        $feed_item = substr($feed_item, $start);
-        $xml = simplexml_load_string($feed_item);
-        $oneitem = $xml->channel->item[0];
-        return $oneitem;
+        $xmlstr = '<item>
+            <link>' . $url . '</link>
+            <title>' . $title . '</title>
+
+            <guid isPermaLink="true">' . $url .'</guid>
+            <description>'
+                . htmlspecialchars($content) .
+            '</description>
+            <author>' . $author . '</author>
+            <pubDate>' . $pub_date . '</pubDate>
+        </item>';
+
+        return new SimpleXMLElement($xmlstr);
+    }
+
+    // Extract content by piping through Readability.php
+    function extract_readability($url)
+    {
+        $autoload = __DIR__ . '/vendor/autoload.php';
+
+        // No local Readability.php installed, use FiveFilters
+        if (!file_exists($autoload)) 
+        {
+            $feed_url = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . urlencode($url);
+        
+            $feed_item = file_get_contents($feed_url);
+
+            // error handling remove everything until first <
+            $start = strpos($feed_item, "<");
+            $feed_item = substr($feed_item, $start);
+            $xml = simplexml_load_string($feed_item);
+            $ff_item = $xml->channel->item[0];
+
+            $title = $ff_item->title;
+            $content = $ff_item->description;
+            $author = "";
+            return make_feed_item($url, $title, $author, $content);
+        }
+
+        require $autoload;
+
+        $html = file_get_contents($url);
+
+        if (function_exists('tidy_parse_string')) 
+        {
+            $tidy = tidy_parse_string($html, array(), 'UTF8');
+            $tidy->cleanRepair();
+            $html = $tidy->value;
+        }
+
+        $readability = new Readability(new Configuration([
+            'fixRelativeURLs' => true,
+        ]));
+
+        $html = file_get_contents($url);
+        $readability->parse($html);
+
+        $item = "";
+        try
+        {
+            $title = $readability->getTitle();
+            $content = $readability->getContent();
+            $author = $readability->getAuthor();
+            $item = make_feed_item($url, $title, $author, $content);
+        } 
+        catch (ParseException $e) 
+        {
+            $item = make_feed_item($url, $url, $url, "Could not extract content: " . $e->getMessage());
+        }
+        
+        return $item;
     }
 
     // Add URL to personal feed
@@ -136,9 +203,7 @@
         }
 
         // fetch rss content and add
-        $item = fetch_feed_item($param_url);
-        $pub_date = date("D, d M Y H:i:s T");
-        $item->addChild("pubDate", $pub_date);
+        $item = extract_readability($param_url);
         sxml_append($xml->channel, $item);
 
         // write to rss file
