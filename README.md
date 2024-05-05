@@ -39,3 +39,13 @@ You can drop `librarian.php` onto any host that supports PHP with no other requi
 - `url` is a URL you submit to RSS-Librarian, whose content will be extracted and added to the feed coressponding to `id`.
 
 For each `url` posted to RSS-Librarian, the extracted content will be added to a RSS file derived from `id` - if it exists in the `feeds/` folder. If it does not exist, it will be generated and written. The RSS file will store a maximum of 100 entries before removing the oldest one and adding the new one. If you want articles cached for a long time, either manually increase `max_items` or configure your favorite reader to cache downloaded entries longer.
+
+# Adding local readability extraction
+
+RSS-Librarian uses the RSS extraction of [FiveFilters](https://www.fivefilters.org/) by default. If you can spare some extra space, you can easily add the ability to do the extraction of content locally without having to rely on FiveFilters.
+
+To do this, [first install `composer`](https://getcomposer.org/download/) by following the instructions until you have `composer.phar` next to `librarian.php` in the directory of RSS-Librarian and execute:
+
+`php composer.phar require fivefilters/readability.php`
+
+This will create a directory called `vendor` inside your checkout, which you simply upload together with `librarian.php` to your host. If the RSS-Librarian sees that the `vendor` directory exists it will switch to use the local readability functionality.
