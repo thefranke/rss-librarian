@@ -57,11 +57,12 @@
 
         // recreate base file so changes in the header are put in with every new release
         $new_rss_base_text = '<?xml version="1.0" encoding="utf-8"?>
-        <rss version="2.0">
+        <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
             <channel>
                 <title>RSS-Librarian (' . substr($user_id, 0, 4) . ')</title>
                 <description>A read-it-later service for RSS purists</description>
                 <link>' . $personal_url . '</link>
+                <atom:link href="' . $personal_url . '" rel="self" type="application/rss+xml" />
             </channel>
         </rss>
         ';
