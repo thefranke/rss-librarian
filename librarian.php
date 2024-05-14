@@ -122,9 +122,18 @@
     {
         $autoload = __DIR__ . '/vendor/autoload.php';
 
-        // No local Readability.php installed, use FiveFilters
-        if (!file_exists($autoload)) 
+        $html = "";
+
+        if (file_exists($autoload))
         {
+            require $autoload;
+            $html = @file_get_contents($url);
+        }
+
+        // No local Readability.php installed, use FiveFilters
+        if ($html == "")
+        {
+            echo "using ftr";
             $feed_url = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . urlencode($url);
         
             $feed_item = file_get_contents($feed_url);
@@ -140,10 +149,6 @@
             $author = "";
             return make_feed_item($url, $title, $author, $content);
         }
-
-        require $autoload;
-
-        $html = file_get_contents($url);
 
         if (function_exists('tidy_parse_string')) 
         {
