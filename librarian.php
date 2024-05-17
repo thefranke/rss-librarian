@@ -162,11 +162,12 @@
         ]));
 
         $html = file_get_contents($url);
-        $readability->parse($html);
-
+        
         $item = "";
         try
         {
+            $readability->parse($html);
+
             $title = $readability->getTitle();
             $content = $readability->getContent();
             $author = $readability->getAuthor();
