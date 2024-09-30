@@ -1,7 +1,7 @@
 <?php
     /*
      * RSS-Librarian - A read-it-later service for RSS purists
-     * 
+     *
      * https://github.com/thefranke/rss-librarian
      *
      */
@@ -15,12 +15,12 @@
     $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
     $g_url_librarian = $g_url_base . $_SERVER["PHP_SELF"];
     $g_dir_feeds = "feeds";
-    
+
     // Fetch parameters given to librarian
     function fetch_param($param)
     {
         $params = $_GET;
-        
+
         foreach($params as $k => $v)
         {
             if ($k == $param)
@@ -34,7 +34,7 @@
     function get_feed_id($user_id)
     {
         return $user_id;
-        
+
         // Later feature: Disconnect feed from user
         //return hash('sha256', $user_id);
     }
@@ -76,10 +76,10 @@
 
         // try to open local subscriptions and copy items over
         $local_feed_text = @file_get_contents($local_feed_file);
-        if ($local_feed_text != "") 
+        if ($local_feed_text != "")
         {
             $old_rss_xml = simplexml_load_string($local_feed_text);
-            
+
             foreach($old_rss_xml->channel->item as $item)
                 sxml_append($rss_xml->channel, $item);
         }
@@ -88,7 +88,7 @@
     }
 
     // Helper to attach new XML element to existing one
-    function sxml_append(SimpleXMLElement $to, SimpleXMLElement $from) 
+    function sxml_append(SimpleXMLElement $to, SimpleXMLElement $from)
     {
         $toDom = dom_import_simplexml($to);
         $fromDom = dom_import_simplexml($from);
@@ -96,7 +96,7 @@
         $firstSibling = $toDom->getElementsByTagName('item')->item(0);
         $toDom->insertBefore($new_node, $firstSibling);
     }
-    
+
     // Create XML element for an RSS item
     function make_feed_item($url, $title, $author, $content)
     {
@@ -127,7 +127,15 @@
         if (file_exists($autoload))
         {
             require $autoload;
-            $html = @file_get_contents($url);
+            // Pretend to be a browser to have an increased success rate of
+            // downloading the contents compared to a simple `file_get_contents`.
+            // See https://stackoverflow.com/a/11680776.
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
+            $html = curl_exec($ch);
+            curl_close($ch);
         }
 
         // No local Readability.php installed, use FiveFilters
@@ -135,7 +143,7 @@
         {
             echo "using ftr";
             $feed_url = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . urlencode($url);
-        
+
             $feed_item = file_get_contents($feed_url);
 
             // error handling remove everything until first <
@@ -150,7 +158,7 @@
             return make_feed_item($url, $title, $author, $content);
         }
 
-        if (function_exists('tidy_parse_string')) 
+        if (function_exists('tidy_parse_string'))
         {
             $tidy = tidy_parse_string($html, array(), 'UTF8');
             $tidy->cleanRepair();
@@ -159,10 +167,9 @@
 
         $readability = new Readability(new Configuration([
             'fixRelativeURLs' => true,
+            'originalURL' => $url,
         ]));
 
-        $html = file_get_contents($url);
-        
         $item = "";
         try
         {
@@ -172,12 +179,12 @@
             $content = $readability->getContent();
             $author = $readability->getAuthor();
             $item = make_feed_item($url, $title, $author, $content);
-        } 
-        catch (ParseException $e) 
+        }
+        catch (ParseException $e)
         {
             $item = make_feed_item($url, $url, $url, "Could not extract content: " . $e->getMessage());
         }
-        
+
         return $item;
     }
 
@@ -187,9 +194,9 @@
         global $g_max_items;
 
         $local_feed_file = get_local_feed_file($user_id);
-        
+
         $xml = update_feed_file($user_id);
-        
+
         if ($xml->channel->item)
         {
             // check max item count, remove anything beyond
@@ -238,7 +245,7 @@
     $user_id = $param_id;
 
     // user exists?
-    if ($param_id != "") 
+    if ($param_id != "")
         print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_local_feed_file($param_id) . '">');
     else
         $user_id = hash('sha256', random_bytes(18));
@@ -282,7 +289,7 @@
             color: #99c683;
         }
         a:link, a:visited {
-            color: #99c683;   
+            color: #99c683;
         }
         img {
             filter:invert(1);
@@ -303,7 +310,7 @@
         </div>
 <?php
     // Check if parameter was supplied to distinguish new users from existing ones
-    if ($param_id != "") 
+    if ($param_id != "")
     {
         $personal_url = $g_url_librarian . '?id=' . $user_id;
         $feed_id = get_feed_id($user_id);
@@ -319,7 +326,7 @@
              <br>
              <input type="submit" value="Add to feed">
              </form><br><br>');
-    
+
     if ($param_url != "")
     {
         $result = add_url($user_id, $param_url);
