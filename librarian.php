@@ -201,7 +201,6 @@
             $i = 0;
             foreach($rss_xml->channel->item as $item)
             {
-                print_r("\n".$item->guid.' '.$param_url);
                 if ($item->guid == $param_url)
                 {
                     unset($rss_xml->channel->item[$i]);
@@ -212,9 +211,7 @@
 
             // write to rss file
             file_put_contents($local_feed_file, $rss_xml->asXml());
-            http_response_code(302);
-            header('Location: /?id='.$user_id);
-            die;
+            return '<a href="' . $param_url . '">' . $param_url . '</a> removed';
         }
 
         return 'Url did not exist';
@@ -263,6 +260,29 @@
         $filecount = count(glob($g_dir_feeds . "/*.xml"));
         return $filecount;
     }
+
+    $param_url = fetch_param("url");
+    $param_id = fetch_param("id");
+    $param_delete = fetch_param("delete");
+    $user_id = $param_id;
+
+    if ($param_id != "" && $param_url != "")
+    {
+        if ($param_delete == "1")
+        {
+            $result = remove_url($param_id, $param_url);
+            http_response_code(302);
+            header('Location: /?id='.$param_id);
+            die;
+        }
+        else
+        {
+            $result = add_url($param_id, $param_url);
+            http_response_code(302);
+            header('Location: /?id='.$param_id);
+            die;
+        }
+    }
 ?>
 
 <!DOCTYPE html>
@@ -272,11 +292,6 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <link rel="shortcut icon" href="favicon.png">
   <?php
-    $param_url = fetch_param("url");
-    $param_id = fetch_param("id");
-    $param_delete = fetch_param("delete");
-    $user_id = $param_id;
-
     // user exists?
     if ($param_id != "")
         print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_local_feed_file($param_id) . '">');
@@ -316,7 +331,7 @@
     img {
         width: 120pt;
     }
-    #urls {
+    #feed-items {
         text-align: left;
     }
     @media (prefers-color-scheme: dark) {
@@ -364,7 +379,7 @@
              </form><br><br>');
     if ($param_id != "")
     {
-        print_r('<div id="urls">Urls:');
+        print_r('<div id="feed-items">Feed Items:');
         print_r('<ol>');
 
         // try to open local subscriptions for printing
@@ -374,23 +389,11 @@
             $rss_xml = simplexml_load_string($local_feed_text);
 
             foreach($rss_xml->channel->item as $item)
-                print_r('<li><a href="?id='.$user_id.'&delete=1&url='.urlencode($item->guid).'" onclick="return confirm(\'Delete?\') || false">❌</a> '.$item->title.': <a href="'.$item->guid.'" target="_blank">'.$item->guid.'</a></li>');
+                print_r('<li><a href="?id='.$user_id.'&delete=1&url='.urlencode($item->guid).'" onclick="return confirm(\'Delete?\')">❌</a> <a href="'.$item->guid.'" target="_blank">'.$item->title.'</a></li>');
         }
 
         print_r('</ol>');
         print_r('</div>');
-        // die($param_delete ? "yes" : "no");
-        if ($param_url != "" && $param_delete == "1")
-        {
-            $result = remove_url($user_id, $param_url);
-            print_r($result);
-        }
-    }
-
-    if ($param_url != "" && $param_delete != "1")
-    {
-        $result = add_url($user_id, $param_url);
-        print_r($result);
     }
 
     if ($param_id)
