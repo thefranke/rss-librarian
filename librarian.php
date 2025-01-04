@@ -290,7 +290,7 @@
 <head>
   <title>RSS-Librarian</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <link rel="shortcut icon" href="favicon.png">
+  <link rel="shortcut icon" href="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
   <?php
     // user exists?
     if ($param_id != "")
