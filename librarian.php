@@ -238,7 +238,7 @@
 <head>
   <title>RSS-Librarian</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <link rel="shortcut icon" href="favicon.png">
+  <link rel="shortcut icon" href="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
   <?php
     $param_url = fetch_param("url");
     $param_id = fetch_param("id");
