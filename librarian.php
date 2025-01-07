@@ -30,30 +30,21 @@
         return "";
     }
 
-    // Turn user ID into feed ID
-    function get_feed_id($user_id)
-    {
-        return $user_id;
-
-        // Later feature: Disconnect feed from user
-        //return hash('sha256', $user_id);
-    }
-
     // Produce path for local feed file
     function get_local_feed_file($param_id)
     {
         global $g_dir_feeds;
-        $file_hash = get_feed_id($param_id);
-        return $g_dir_feeds . "/" . $file_hash . ".xml";
+        return $g_dir_feeds . "/" . $param_id . ".xml";
     }
 
+    // Check if feed file exists
     function feed_file_exists($param_id)
     {
         return file_exists(get_local_feed_file($param_id));
     }
 
     // Update feed files with new header
-    function update_feed_file($user_id)
+    function update_feed_file($param_id)
     {
         global $g_dir_feeds;
         global $g_url_librarian;
@@ -62,13 +53,13 @@
         if (!is_dir($g_dir_feeds))
             mkdir($g_dir_feeds);
 
-        $personal_url = $g_url_librarian . '?id=' . $user_id;
+        $personal_url = $g_url_librarian . '?id=' . $param_id;
 
         // recreate base file so changes in the header are put in with every new release
         $new_rss_base_text = '<?xml version="1.0" encoding="utf-8"?>
         <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
             <channel>
-                <title>RSS-Librarian (' . substr($user_id, 0, 4) . ')</title>
+                <title>RSS-Librarian (' . substr($param_id, 0, 4) . ')</title>
                 <description>A read-it-later service for RSS purists</description>
                 <link>' . $personal_url . '</link>
                 <atom:link href="' . $personal_url . '" rel="self" type="application/rss+xml" />
@@ -77,7 +68,7 @@
         ';
 
         $rss_xml = simplexml_load_string($new_rss_base_text);
-        $local_feed_file = get_local_feed_file($user_id);
+        $local_feed_file = get_local_feed_file($param_id);
 
         // try to open local subscriptions and copy items over
         $local_feed_text = @file_get_contents($local_feed_file);
@@ -193,13 +184,13 @@
     }
 
     // Add URL to personal feed
-    function add_url($user_id, $param_url)
+    function add_url($param_id, $param_url)
     {
         global $g_max_items;
 
-        $local_feed_file = get_local_feed_file($user_id);
+        $local_feed_file = get_local_feed_file($param_id);
 
-        $xml = update_feed_file($user_id);
+        $xml = update_feed_file($param_id);
 
         if ($xml->channel->item)
         {
@@ -236,37 +227,40 @@
         return $filecount;
     }
 
-    function get_personal_url($user_id)
+    // Fetch personal URL string
+    function get_personal_url($param_id)
     {
         global $g_url_librarian;
-        return $g_url_librarian . '?id=' . $user_id;
+        return $g_url_librarian . '?id=' . $param_id;
     }
 
-    function show_user_urls($user_id, $show_header)
+    // Print message containing RSS url and personal url
+    function show_user_urls($param_id, $show_header)
     {
         global $g_url_librarian;
 
-        if ($user_id == "")
+        if ($param_id == "")
             return;
 
-        $personal_url = get_personal_url($user_id);
-        $local_feed_file = get_local_feed_file($user_id);
+        $personal_url = get_personal_url($param_id);
+        $local_feed_file = get_local_feed_file($param_id);
         
         if ($show_header)
-            print_r('<h4>Managing articles of ' . substr($user_id, 0, 4) . '...' . substr($user_id, -4) .':</h4>');
+            print_r('<h4>Managing articles of ' . substr($param_id, 0, 4) . '...' . substr($param_id, -4) .':</h4>');
         
         print_r('Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a><br><br><br>');
     }
 
-    function show_tools($user_id)
+    // Print message with tools for RSS feed management and preview
+    function show_tools($param_id)
     {
         global $g_url_base;
 
-        if ($user_id == "")
+        if ($param_id == "")
             return;
 
-        $personal_url = get_personal_url($user_id);
-        $local_feed_file = get_local_feed_file($user_id);
+        $personal_url = get_personal_url($param_id);
+        $local_feed_file = get_local_feed_file($param_id);
 
         print_r('<br><br><br>
                  <h4>More tools:</h4>
@@ -284,7 +278,6 @@
   <?php
     $param_url = fetch_param("url");
     $param_id = fetch_param("id");
-    $user_id = $param_id;
 
     // User exists?
     if ($param_id != "")
@@ -352,20 +345,19 @@
     // Adding URL for the first time, make sure user has saved their URLs!
     if ($param_id == "" && $param_url != "")
     {
-        // Create new user
-        $user_id = hash('sha256', random_bytes(18));
+        // Create new user id
+        $param_id = hash('sha256', random_bytes(18));
 
-        // Print confirmation message and forward
         print_r('You are about to create a new feed.
                  <br><br>
                  <h4>Please confirm that you have saved the following two URLs before continuing!</h4>
                  <br>');
 
-        show_user_urls($user_id, false);
+        show_user_urls($param_id, false);
 
         print_r('<form action="' . $g_url_librarian . '">
                  <input type="hidden" id="url" name="url" value="' . $param_url . '">
-                 <input type="hidden" id="id"  name="id" value="' . $user_id . '">
+                 <input type="hidden" id="id"  name="id" value="' . $param_id . '">
                  <input type="submit" value="Confirm">
                  </form>');
     }
@@ -373,12 +365,12 @@
     // Existing user adding a URL or fresh start
     else
     {
-        show_user_urls($user_id, true);
+        show_user_urls($param_id, true);
         
         print_r('<h4>Paste a new URL here:</h4>
                 <form action="' . $g_url_librarian . '">
                 <input type="text" id="url" name="url">
-                <input type="hidden" id="id" name="id" value="' . $user_id . '">
+                <input type="hidden" id="id" name="id" value="' . $param_id . '">
                 <br>
                 <input type="submit" value="Add to feed">
                 </form>
@@ -386,11 +378,11 @@
 
         if ($param_url != "")
         {
-            $result = add_url($user_id, $param_url);
+            $result = add_url($param_id, $param_url);
             print_r($result);
         }
 
-        show_tools($user_id);
+        show_tools($param_id);
     }
 ?>
 
