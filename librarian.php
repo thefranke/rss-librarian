@@ -30,25 +30,21 @@
         return "";
     }
 
-    // Turn user ID into feed ID
-    function get_feed_id($user_id)
-    {
-        return $user_id;
-
-        // Later feature: Disconnect feed from user
-        //return hash('sha256', $user_id);
-    }
-
     // Produce path for local feed file
     function get_local_feed_file($param_id)
     {
         global $g_dir_feeds;
-        $file_hash = get_feed_id($param_id);
-        return $g_dir_feeds . "/" . $file_hash . ".xml";
+        return $g_dir_feeds . "/" . $param_id . ".xml";
+    }
+
+    // Check if feed file exists
+    function feed_file_exists($param_id)
+    {
+        return file_exists(get_local_feed_file($param_id));
     }
 
     // Update feed files with new header
-    function update_feed_file($user_id)
+    function update_feed_file($param_id)
     {
         global $g_dir_feeds;
         global $g_url_librarian;
@@ -57,13 +53,13 @@
         if (!is_dir($g_dir_feeds))
             mkdir($g_dir_feeds);
 
-        $personal_url = $g_url_librarian . '?id=' . $user_id;
+        $personal_url = $g_url_librarian . '?id=' . $param_id;
 
         // recreate base file so changes in the header are put in with every new release
         $new_rss_base_text = '<?xml version="1.0" encoding="utf-8"?>
         <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
             <channel>
-                <title>RSS-Librarian (' . substr($user_id, 0, 4) . ')</title>
+                <title>RSS-Librarian (' . substr($param_id, 0, 4) . ')</title>
                 <description>A read-it-later service for RSS purists</description>
                 <link>' . $personal_url . '</link>
                 <atom:link href="' . $personal_url . '" rel="self" type="application/rss+xml" />
@@ -72,7 +68,7 @@
         ';
 
         $rss_xml = simplexml_load_string($new_rss_base_text);
-        $local_feed_file = get_local_feed_file($user_id);
+        $local_feed_file = get_local_feed_file($param_id);
 
         // try to open local subscriptions and copy items over
         $local_feed_text = @file_get_contents($local_feed_file);
@@ -141,7 +137,6 @@
         // No local Readability.php installed, use FiveFilters
         if ($html == "")
         {
-            echo "using ftr";
             $feed_url = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . urlencode($url);
 
             $feed_item = file_get_contents($feed_url);
@@ -218,13 +213,13 @@
     }
 
     // Add URL to personal feed
-    function add_url($user_id, $param_url)
+    function add_url($param_id, $param_url)
     {
         global $g_max_items;
 
-        $local_feed_file = get_local_feed_file($user_id);
+        $local_feed_file = get_local_feed_file($param_id);
 
-        $xml = update_feed_file($user_id);
+        $xml = update_feed_file($param_id);
 
         if ($xml->channel->item)
         {
@@ -283,6 +278,69 @@
             die;
         }
     }
+
+    // Fetch personal URL string
+    function get_personal_url($param_id)
+    {
+        global $g_url_librarian;
+        return $g_url_librarian . '?id=' . $param_id;
+    }
+
+    // Print message containing RSS url and personal url
+    function show_user_urls($param_id, $show_header)
+    {
+        global $g_url_librarian;
+
+        if ($param_id == "")
+            return;
+
+        $personal_url = get_personal_url($param_id);
+        $local_feed_file = get_local_feed_file($param_id);
+        
+        if ($show_header)
+            print_r('<h4>Managing articles of ' . substr($param_id, 0, 4) . '...' . substr($param_id, -4) .':</h4>');
+        
+        print_r('Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a><br><br><br>');
+    }
+
+    function show_saved_urls($param_id)
+    {
+        if ($param_id == "")
+            return;
+
+        print_r('<div id="feed-items">Feed Items:');
+        print_r('<ol>');
+
+        // try to open local subscriptions for printing
+        $local_feed_text = @file_get_contents(get_local_feed_file($param_id));
+        if ($local_feed_text != "")
+        {
+            $rss_xml = simplexml_load_string($local_feed_text);
+
+            foreach($rss_xml->channel->item as $item)
+                print_r('<li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' .$item->title. '</a></li>');
+        }
+
+        print_r('</ol>');
+        print_r('</div>');
+    }
+
+    // Print message with tools for RSS feed management and preview
+    function show_tools($param_id)
+    {
+        global $g_url_base;
+
+        if ($param_id == "")
+            return;
+
+        $personal_url = get_personal_url($param_id);
+        $local_feed_file = get_local_feed_file($param_id);
+
+        print_r('<br><br><br>
+                 <h4>More tools:</h4>
+                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
+                 <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>');
+    }
 ?>
 
 <!DOCTYPE html>
@@ -292,11 +350,12 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <link rel="shortcut icon" href="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
   <?php
-    // user exists?
+    $param_url = fetch_param("url");
+    $param_id = fetch_param("id");
+
+    // User exists?
     if ($param_id != "")
         print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_local_feed_file($param_id) . '">');
-    else
-        $user_id = hash('sha256', random_bytes(18));
   ?>
 
   <style>
@@ -360,46 +419,47 @@
             <h4>Instance managing <?php echo count_feeds() ?> feeds</h4>
         </div>
 <?php
-    // Check if parameter was supplied to distinguish new users from existing ones
-    if ($param_id != "")
+    // Adding URL for the first time, make sure user has saved their URLs!
+    if ($param_id == "" && $param_url != "")
     {
-        $personal_url = $g_url_librarian . '?id=' . $user_id;
-        $feed_id = get_feed_id($user_id);
-        $local_feed_file = get_local_feed_file($user_id);
-        print_r('<h4>Managing articles of ' . substr($user_id, 0, 4) . '...' . substr($user_id, -4) .':</h4>');
-        print_r('Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a><br><br><br>');
+        // Create new user id
+        $param_id = hash('sha256', random_bytes(18));
+
+        print_r('You are about to create a new feed.
+                 <br><br>
+                 <h4>Please confirm that you have saved the following two URLs before continuing!</h4>
+                 <br>');
+
+        show_user_urls($param_id, false);
+
+        print_r('<form action="' . $g_url_librarian . '">
+                 <input type="hidden" id="url" name="url" value="' . $param_url . '">
+                 <input type="hidden" id="id"  name="id" value="' . $param_id . '">
+                 <input type="submit" value="Confirm">
+                 </form>');
     }
 
-    print_r('<h4>Paste a new URL here:</h4>
-             <form action="' . $g_url_librarian . '">
-             <input type="text" id="url" name="url">
-             <input type="hidden" id="id" name="id" value="' . $user_id . '">
-             <br>
-             <input type="submit" value="Add to feed">
-             </form><br><br>');
-    if ($param_id != "")
+    // Existing user adding a URL or fresh start
+    else
     {
-        print_r('<div id="feed-items">Feed Items:');
-        print_r('<ol>');
+        print_r('<h4>Paste a new URL here:</h4>
+                <form action="' . $g_url_librarian . '">
+                <input type="text" id="url" name="url">
+                <input type="hidden" id="id" name="id" value="' . $param_id . '">
+                <br>
+                <input type="submit" value="Add to feed">
+                </form>
+                <br><br>');
 
-        // try to open local subscriptions for printing
-        $local_feed_text = @file_get_contents(get_local_feed_file($user_id));
-        if ($local_feed_text != "")
+        show_saved_urls($param_id);
+
+        if ($param_url != "")
         {
-            $rss_xml = simplexml_load_string($local_feed_text);
-
-            foreach($rss_xml->channel->item as $item)
-                print_r('<li><a href="?id='.$user_id.'&delete=1&url='.urlencode($item->guid).'" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="'.$item->guid.'" target="_blank">'.$item->title.'</a></li>');
+            $result = add_url($param_id, $param_url);
+            print_r($result);
         }
 
-        print_r('</ol>');
-        print_r('</div>');
-    }
-
-    if ($param_id)
-    {
-        print_r('<br><br><br>');
-        print_r('<h4>More tools:</h4><a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>');
+        show_tools($param_id);
     }
 ?>
 
