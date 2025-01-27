@@ -308,21 +308,23 @@
         if ($param_id == "")
             return;
 
-        print_r('<div id="feed-items">Feed Items:');
-        print_r('<ol>');
-
-        // try to open local subscriptions for printing
         $local_feed_text = @file_get_contents(get_local_feed_file($param_id));
+        
+        // try to open local subscriptions for printing    
         if ($local_feed_text != "")
         {
             $rss_xml = simplexml_load_string($local_feed_text);
 
+            if (count($rss_xml->channel->item) == 0)
+                return;
+
+            print_r('<div id="feed-items">Feed Items:<ol>');
+
             foreach($rss_xml->channel->item as $item)
                 print_r('<li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' .$item->title. '</a></li>');
-        }
 
-        print_r('</ol>');
-        print_r('</div>');
+            print_r('</ol></div>');
+        }
     }
 
     // Print message with tools for RSS feed management and preview
