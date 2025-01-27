@@ -188,6 +188,35 @@
         return $item;
     }
 
+    // Remove URL from personal feed
+    function remove_url($user_id, $param_url)
+    {
+        $local_feed_file = get_local_feed_file($user_id);
+        $local_feed_text = @file_get_contents($local_feed_file);
+
+        if ($local_feed_text != "")
+        {
+            $rss_xml = simplexml_load_string($local_feed_text);
+
+            $i = 0;
+            foreach($rss_xml->channel->item as $item)
+            {
+                if ($item->guid == $param_url)
+                {
+                    unset($rss_xml->channel->item[$i]);
+                    break;
+                }
+                $i++;
+            }
+
+            // write to rss file
+            file_put_contents($local_feed_file, $rss_xml->asXml());
+            return '<a href="' . $param_url . '">' . $param_url . '</a> removed';
+        }
+
+        return 'Url did not exist';
+    }
+
     // Add URL to personal feed
     function add_url($user_id, $param_url)
     {
@@ -231,6 +260,29 @@
         $filecount = count(glob($g_dir_feeds . "/*.xml"));
         return $filecount;
     }
+
+    $param_url = fetch_param("url");
+    $param_id = fetch_param("id");
+    $param_delete = fetch_param("delete");
+    $user_id = $param_id;
+
+    if ($param_id != "" && $param_url != "")
+    {
+        if ($param_delete == "1")
+        {
+            $result = remove_url($param_id, $param_url);
+            http_response_code(302);
+            header('Location: /?id='.$param_id);
+            die;
+        }
+        else
+        {
+            $result = add_url($param_id, $param_url);
+            http_response_code(302);
+            header('Location: /?id='.$param_id);
+            die;
+        }
+    }
 ?>
 
 <!DOCTYPE html>
@@ -240,10 +292,6 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <link rel="shortcut icon" href="favicon.png">
   <?php
-    $param_url = fetch_param("url");
-    $param_id = fetch_param("id");
-    $user_id = $param_id;
-
     // user exists?
     if ($param_id != "")
         print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_local_feed_file($param_id) . '">');
@@ -282,6 +330,9 @@
     }
     img {
         width: 120pt;
+    }
+    #feed-items {
+        text-align: left;
     }
     @media (prefers-color-scheme: dark) {
         html {
@@ -326,11 +377,23 @@
              <br>
              <input type="submit" value="Add to feed">
              </form><br><br>');
-
-    if ($param_url != "")
+    if ($param_id != "")
     {
-        $result = add_url($user_id, $param_url);
-        print_r($result);
+        print_r('<div id="feed-items">Feed Items:');
+        print_r('<ol>');
+
+        // try to open local subscriptions for printing
+        $local_feed_text = @file_get_contents(get_local_feed_file($user_id));
+        if ($local_feed_text != "")
+        {
+            $rss_xml = simplexml_load_string($local_feed_text);
+
+            foreach($rss_xml->channel->item as $item)
+                print_r('<li><a href="?id='.$user_id.'&delete=1&url='.urlencode($item->guid).'" onclick="return confirm(\'Delete?\')">❌</a> <a href="'.$item->guid.'" target="_blank">'.$item->title.'</a></li>');
+        }
+
+        print_r('</ol>');
+        print_r('</div>');
     }
 
     if ($param_id)
