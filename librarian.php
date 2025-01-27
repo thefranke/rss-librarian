@@ -272,14 +272,14 @@
         {
             $result = remove_url($param_id, $param_url);
             http_response_code(302);
-            header('Location: /?id='.$param_id);
+            header('Location: ' .$g_url_librarian. '?id=' .$param_id);
             die;
         }
         else
         {
             $result = add_url($param_id, $param_url);
             http_response_code(302);
-            header('Location: /?id='.$param_id);
+            header('Location: ' .$g_url_librarian. '?id=' .$param_id);
             die;
         }
     }
@@ -389,7 +389,7 @@
             $rss_xml = simplexml_load_string($local_feed_text);
 
             foreach($rss_xml->channel->item as $item)
-                print_r('<li><a href="?id='.$user_id.'&delete=1&url='.urlencode($item->guid).'" onclick="return confirm(\'Delete?\')">❌</a> <a href="'.$item->guid.'" target="_blank">'.$item->title.'</a></li>');
+                print_r('<li><a href="?id='.$user_id.'&delete=1&url='.urlencode($item->guid).'" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="'.$item->guid.'" target="_blank">'.$item->title.'</a></li>');
         }
 
         print_r('</ol>');
