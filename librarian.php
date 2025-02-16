@@ -98,6 +98,9 @@
     {
         $pub_date = date("D, d M Y H:i:s T");
 
+        if ($title == "")
+            $title = $url;
+
         $xmlstr = '<item>
             <link>' . $url . '</link>
             <title>' . $title . '</title>
@@ -318,10 +321,21 @@
             if (count($rss_xml->channel->item) == 0)
                 return;
 
+            $rss_sorted = array();
+            foreach ($rss_xml->channel->item as $item)
+                $rss_sorted[] = $item;
+
+            usort($rss_sorted, function($a, $b) {
+                return strtotime($b->pubDate) - strtotime($a->pubDate);
+            });
+
             print_r('<div id="feed-items">Feed Items:<ol>');
 
-            foreach($rss_xml->channel->item as $item)
-                print_r('<li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' .$item->title. '</a></li>');
+            foreach($rss_sorted as $item)
+            {
+                $title = $item->title != "" ? $item->title : $item->guid;
+                print_r('<li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' . $title . '</a></li>');
+            }
 
             print_r('</ol></div>');
         }
