@@ -247,9 +247,9 @@
         {
             // check max item count, remove anything beyond
             $c = $xml->channel->item->count();
-            while ($c > $g_max_items)
+            while ($c >= $g_max_items)
             {
-                unset($xml->channel->item[$c - 1]);
+                unset($xml->channel->item[0]);
                 $c--;
             }
 
