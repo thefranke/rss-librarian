@@ -57,6 +57,16 @@
         return file_exists(get_local_feed_file($param_id));
     }
 
+    // Helper to attach new XML element to existing one
+    function sxml_append(SimpleXMLElement $to, SimpleXMLElement $from)
+    {
+        $toDom = dom_import_simplexml($to);
+        $fromDom = dom_import_simplexml($from);
+        $new_node = $toDom->ownerDocument->importNode($fromDom, true);
+        $firstSibling = $toDom->getElementsByTagName('item')->item(0);
+        $toDom->insertBefore($new_node, $firstSibling);
+    }
+
     // Update feed files with new header
     function update_feed_file($param_id)
     {
@@ -95,16 +105,6 @@
         }
 
         return $rss_xml;
-    }
-
-    // Helper to attach new XML element to existing one
-    function sxml_append(SimpleXMLElement $to, SimpleXMLElement $from)
-    {
-        $toDom = dom_import_simplexml($to);
-        $fromDom = dom_import_simplexml($from);
-        $new_node = $toDom->ownerDocument->importNode($fromDom, true);
-        $firstSibling = $toDom->getElementsByTagName('item')->item(0);
-        $toDom->insertBefore($new_node, $firstSibling);
     }
 
     // Create XML element for an RSS item
