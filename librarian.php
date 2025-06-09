@@ -10,10 +10,17 @@
     use fivefilters\Readability\Configuration;
     use fivefilters\Readability\ParseException;
 
-    // Global configuration
-    $g_max_items = 100;
+    // Set to true if extracted content should be added to feed
+    $g_extract_content = false;
+
+    // Maximum length of feed
+    $g_max_items = 10;
+
+    // Base location
     $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
     $g_url_librarian = $g_url_base . $_SERVER["PHP_SELF"];
+    
+    // Directory of feed files
     $g_dir_feeds = "feeds";
 
     // Fetch parameters given to librarian
@@ -103,10 +110,15 @@
     // Create XML element for an RSS item
     function make_feed_item($url, $title, $author, $content)
     {
+        global $g_extract_content;
+
         $pub_date = date("D, d M Y H:i:s T");
 
         if ($title == "")
             $title = $url;
+
+        if (!$g_extract_content)
+            $content = "";
 
         $xmlstr = '<item>
             <link>' . $url . '</link>
