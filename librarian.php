@@ -286,7 +286,7 @@
     }
 
     // Print message containing RSS url and personal url
-    function show_user_urls($param_id, $show_header)
+    function show_user_urls($param_id)
     {
         global $g_url_librarian;
 
@@ -296,10 +296,11 @@
         $personal_url = get_personal_url($param_id);
         $local_feed_file = get_local_feed_file($param_id);
         
-        if ($show_header)
-            print_r('<h4>Managing articles of ' . substr($param_id, 0, 4) . '...' . substr($param_id, -4) .':</h4>');
-        
-        print_r('Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a><br><br><br>');
+        print_r('
+        <section>
+            <h2>Your feed</h2>
+            Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a>
+        </section>');
     }
 
     function show_saved_urls($param_id)
@@ -310,31 +311,37 @@
         $local_feed_text = @file_get_contents(get_local_feed_file($param_id));
         
         // try to open local subscriptions for printing    
-        if ($local_feed_text != "")
+        if ($local_feed_text == "")
+            return;
+
+        $rss_xml = simplexml_load_string($local_feed_text);
+
+        if (count($rss_xml->channel->item) == 0)
+            return;
+
+        $rss_sorted = array();
+        foreach ($rss_xml->channel->item as $item)
+            $rss_sorted[] = $item;
+
+        usort($rss_sorted, function($a, $b) {
+            return strtotime($b->pubDate) - strtotime($a->pubDate);
+        });
+
+        print_r('
+        <section id="feed-items">
+            <h2>Feed Items</h2>
+            <ol>');
+
+        foreach($rss_sorted as $item)
         {
-            $rss_xml = simplexml_load_string($local_feed_text);
-
-            if (count($rss_xml->channel->item) == 0)
-                return;
-
-            $rss_sorted = array();
-            foreach ($rss_xml->channel->item as $item)
-                $rss_sorted[] = $item;
-
-            usort($rss_sorted, function($a, $b) {
-                return strtotime($b->pubDate) - strtotime($a->pubDate);
-            });
-
-            print_r('<div id="feed-items">Feed Items:<ol>');
-
-            foreach($rss_sorted as $item)
-            {
-                $title = $item->title != "" ? $item->title : $item->guid;
-                print_r('<li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' . $title . '</a></li>');
-            }
-
-            print_r('</ol></div>');
+            $title = $item->title != "" ? $item->title : $item->guid;
+            print_r('
+                <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' . $title . '</a></li>');
         }
+
+        print_r('
+            </ol>
+        </section>');
     }
 
     // Print message with tools for RSS feed management and preview
@@ -348,10 +355,26 @@
         $personal_url = get_personal_url($param_id);
         $local_feed_file = get_local_feed_file($param_id);
 
-        print_r('<br><br><br>
-                 <h4>More tools:</h4>
-                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-                 <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>');
+        print_r('
+        <section>
+            <h2>More tools</h2>
+            <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
+            <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>
+        </section>');
+    }
+
+    function show_instance_info()
+    {
+        global $g_extract_content;
+        global $g_max_items;
+
+        print_r('
+        <section>
+            <h2>Instance Info</h2>
+            # of managed feeds: ' .count_feeds() . '<br>
+            Full-text extraction: ' . ($g_extract_content ? "True" : "False") . '<br>
+            Max items per feed: ' . $g_max_items .'
+        </section>');
     }
 
     $param_url = fetch_param("url");
@@ -394,14 +417,19 @@
         text-align: center;
         margin-bottom: 24pt;
     }
-    h1, h2, h3, h4 {
+    section {
         margin: 0;
+        padding: 0;
+        margin-bottom: 20pt;
+    }
+    h1, h2, h3, h4, ol {
+        margin: 5pt;
     }
     img {
         width: 120pt;
     }
-    #feed-items {
-        text-align: left;   
+    #feed-items ol {
+        text-align: left;
     }
     li {
         width: 100%;
@@ -426,49 +454,53 @@
 </head>
 <body>
     <div id="main">
-        <div id="header">
+        <section id="header">
             <img alt="" src="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
-
             <h1>RSS-Librarian</h1>
-            <h4>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h4>
+            <h2>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h2>
             <br>
             <hr>
-            <h4>Instance managing <?php echo count_feeds() ?> feeds</h4>
-        </div>
-<?php
+        </section>
+<?php        
     // Adding URL for the first time, make sure user has saved their personal URLs!
     if ($param_id == "" && $param_url != "")
     {
         // Create new user id
         $param_id = hash('sha256', random_bytes(18));
 
-        print_r('You are about to create a new feed.
-                 <br><br>
-                 <h4>Please confirm that you have saved the following two URLs before continuing!</h4>
-                 <br>');
+        print_r('
+        <section>
+            <h2>You are about to create a new feed</h2>
+            Please confirm that you have saved the following two URLs before continuing!
+        </section>');
 
         show_user_urls($param_id, false);
 
-        print_r('<form action="' . $g_url_librarian . '">
-                 <input type="hidden" id="url" name="url" value="' . $param_url . '">
-                 <input type="hidden" id="id"  name="id" value="' . $param_id . '">
-                 <input type="submit" value="Confirm">
-                 </form>');
+        print_r('
+        <section>    
+            <form action="' . $g_url_librarian . '">
+                <input type="hidden" id="url" name="url" value="' . $param_url . '">
+                <input type="hidden" id="id"  name="id" value="' . $param_id . '">
+                <input type="submit" value="Confirm">
+            </form>
+        </section>');
     }
 
     // Returning user view
     else
     {
-        print_r('<h4>Paste a new URL here:</h4>
-                <form action="' . $g_url_librarian . '">
+        print_r('
+        <section>
+            <h2>Add a new URL to your feed</h2>
+            <form action="' . $g_url_librarian . '">
                 <input type="text" id="url" name="url">
                 <input type="hidden" id="id" name="id" value="' . $param_id . '">
-                <br>
+                <br><br>
                 <input type="submit" value="Add to feed">
-                </form>
-                <br><br>');
+            </form>
+        </section>');
 
-        show_user_urls($param_id, false);
+        show_user_urls($param_id, true);
 
         // Add or remove URL
         if ($param_id != "" && $param_url != "")
@@ -485,10 +517,10 @@
 
         show_saved_urls($param_id);
         show_tools($param_id);
+        show_instance_info();
     }
 ?>
 
     </div>
 </body>
-
 </html>
