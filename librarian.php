@@ -14,7 +14,7 @@
     $g_extract_content = false;
 
     // Maximum length of feed
-    $g_max_items = 10;
+    $g_max_items = 100;
 
     // Base location
     $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'];
