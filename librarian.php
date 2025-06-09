@@ -296,7 +296,7 @@
         $personal_url = get_personal_url($param_id);
         $local_feed_file = get_local_feed_file($param_id);
         
-        print_r('
+        print('
         <section>
             <h2>Your feed</h2>
             Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a>
@@ -327,53 +327,56 @@
             return strtotime($b->pubDate) - strtotime($a->pubDate);
         });
 
-        print_r('
-        <section id="feed-items">
+        print('
+        <section>
             <h2>Feed Items</h2>
             <ol>');
 
         foreach($rss_sorted as $item)
         {
             $title = $item->title != "" ? $item->title : $item->guid;
-            print_r('
+            print('
                 <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' . $title . '</a></li>');
         }
 
-        print_r('
+        print('
             </ol>
         </section>');
     }
 
-    // Print message with tools for RSS feed management and preview
-    function show_tools($param_id)
+    // Print message with tools for RSS feed management and instance information
+    function show_footer($param_id)
     {
         global $g_url_base;
-
-        if ($param_id == "")
-            return;
-
-        $personal_url = get_personal_url($param_id);
-        $local_feed_file = get_local_feed_file($param_id);
-
-        print_r('
-        <section>
-            <h2>More tools</h2>
-            <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-            <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>
-        </section>');
-    }
-
-    function show_instance_info()
-    {
         global $g_extract_content;
         global $g_max_items;
 
-        print_r('
-        <section>
+        print('
+        
+        <hr>
+
+        <section>');
+
+        if ($param_id != "")
+        {
+            $personal_url = get_personal_url($param_id);
+            $local_feed_file = get_local_feed_file($param_id);
+
+            print('
+            <h2>More tools</h2>
+            <p>
+                <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
+                <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>
+            </p>');
+        }
+    
+        print('
             <h2>Instance Info</h2>
-            # of hosted feeds: ' .count_feeds() . '<br>
-            Full-text extraction: ' . ($g_extract_content ? "True" : "False") . '<br>
-            Max items per feed: ' . $g_max_items .'
+            <p>
+                # of hosted feeds: ' .count_feeds() . '<br>
+                Full-text extraction: ' . ($g_extract_content ? "True" : "False") . '<br>
+                Max items per feed: ' . $g_max_items . '
+            </p>
         </section>');
     }
 
@@ -384,103 +387,100 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <title>RSS-Librarian</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <link rel="shortcut icon" href="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
-  <?php
-    // User exists?
-    if ($param_id != "")
-        print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
-  ?>
+    <head>
+        <title>RSS-Librarian</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <link rel="shortcut icon" href="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
+        <?php
+        // User exists?
+        if ($param_id != "")
+            print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
+        ?>
 
-  <style>
-    html {
-      font-family: monospace;
-      font-size: 12pt;
-      color: #66397C;
-      text-align: center;
-    }
-    #main {
-      text-align: center;
-      margin: auto;
-      max-width: 75%;
-      display: inline-block;
-    }
-    hr {
-      border: 1px dashed;
-    }
-    a:link, a:visited {
-      color: #66397C;
-    }
-    #header {
-        text-align: center;
-        margin-bottom: 24pt;
-    }
-    section {
-        margin: 0;
-        padding: 0;
-        margin-bottom: 20pt;
-    }
-    h1, h2, h3, h4, ol {
-        margin: 5pt;
-    }
-    img {
-        width: 120pt;
-    }
-    #feed-items ol {
-        text-align: left;
-    }
-    li {
-        width: 100%;
-        list-style-position:inside;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;   
-    }
-    @media (prefers-color-scheme: dark) {
-        html {
-            background-color: #000;
-            color: #99c683;
-        }
-        a:link, a:visited {
-            color: #99c683;
-        }
-        img {
-            filter:invert(1);
-        }
-    }
-  </style>
-</head>
-<body>
-    <div id="main">
-        <section id="header">
+        <style>
+            html {
+                font-family: monospace;
+                font-size: 12pt;
+                color: #66397C;
+                text-align: center;
+                margin: auto;
+                max-width: 50%;
+                min-width: 500px;
+            }
+            hr {
+                border: 1px dashed;
+                margin: 15pt;
+            }
+            a:link, a:visited {
+                color: #66397C;
+            }
+            h1 {
+                font-size: 24pt;
+            }
+            section {
+                margin-bottom: 24pt;
+            }
+            section:first-child {
+                margin-top: 40pt;
+            }
+            h1, h2, h3, h4, ol, ul {
+                margin: 5pt;
+            }
+            img {
+                width: 120pt;
+            }
+            ol, ul {
+                text-align: left;
+            }
+            li {
+                width: 100%;
+                list-style-position:inside;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;   
+            }
+            @media (prefers-color-scheme: dark) {
+                html {
+                    background-color: #000;
+                    color: #99c683;
+                }
+                a:link, a:visited {
+                    color: #99c683;
+                }
+                img {
+                    filter:invert(1);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <section>
             <img alt="" src="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
             <h1>RSS-Librarian</h1>
-            <h2>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h2>
-            <br>
-            <hr>
+            <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
         </section>
+
+        <hr>
 <?php        
     // Adding URL for the first time, make sure user has saved their personal URLs!
     if ($param_id == "" && $param_url != "")
     {
         // Create new user id
-        $param_id = hash('sha256', random_bytes(18));
+        $new_param_id = hash('sha256', random_bytes(18));
 
-        print_r('
+        print('
         <section>
             <h2>You are about to create a new feed</h2>
             Please confirm that you have saved the following two URLs before continuing!
         </section>');
 
-        show_user_urls($param_id);
+        show_user_urls($new_param_id);
 
-        print_r('
+        print('
         <section>    
             <form action="' . $g_url_librarian . '">
                 <input type="hidden" id="url" name="url" value="' . $param_url . '">
-                <input type="hidden" id="id"  name="id" value="' . $param_id . '">
+                <input type="hidden" id="id"  name="id" value="' . $new_param_id . '">
                 <input type="submit" value="Confirm">
             </form>
         </section>');
@@ -489,7 +489,7 @@
     // Returning user view
     else
     {
-        print_r('
+        print('
         <section>
             <h2>Add a new URL to your feed</h2>
             <form action="' . $g_url_librarian . '">
@@ -497,8 +497,7 @@
                 <input type="hidden" id="id" name="id" value="' . $param_id . '">
                 <br><br>
                 <input type="submit" value="Add to feed">
-            </form>
-        </section>');
+            </form>');
 
         // Add or remove URL
         if ($param_id != "" && $param_url != "")
@@ -510,15 +509,18 @@
             else
                 $result = add_url($param_id, $param_url); 
 
-            print_r($result . "<br><br>");
+            print('
+            <p>' . $result . "</p>");
         }
 
+        print('
+        </section>');
+
         show_saved_urls($param_id);
-        show_tools($param_id);
-        show_instance_info();
     }
+    
+    show_footer($param_id);
 ?>
 
-    </div>
-</body>
+    </body>
 </html>
