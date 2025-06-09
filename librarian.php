@@ -278,29 +278,6 @@
         return $filecount;
     }
 
-    $param_url = fetch_param("url");
-    $param_id = fetch_param("id");
-    $param_delete = fetch_param("delete");
-    $user_id = $param_id;
-
-    if ($param_id != "" && $param_url != "")
-    {
-        if ($param_delete == "1")
-        {
-            $result = remove_url($param_id, $param_url);
-            http_response_code(302);
-            header('Location: ' .$g_url_librarian. '?id=' .$param_id);
-            die;
-        }
-        else
-        {
-            $result = add_url($param_id, $param_url);
-            http_response_code(302);
-            header('Location: ' .$g_url_librarian. '?id=' .$param_id);
-            die;
-        }
-    }
-
     // Fetch personal URL string
     function get_personal_url($param_id)
     {
@@ -376,6 +353,10 @@
                  <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
                  <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>');
     }
+
+    $param_url = fetch_param("url");
+    $param_id = fetch_param("id");
+    $param_delete = fetch_param("delete");
 ?>
 
 <!DOCTYPE html>
@@ -451,7 +432,7 @@
             <h4>Instance managing <?php echo count_feeds() ?> feeds</h4>
         </div>
 <?php
-    // Adding URL for the first time, make sure user has saved their URLs!
+    // Adding URL for the first time, make sure user has saved their personal URLs!
     if ($param_id == "" && $param_url != "")
     {
         // Create new user id
@@ -471,7 +452,7 @@
                  </form>');
     }
 
-    // Existing user adding a URL or fresh start
+    // Returning user view
     else
     {
         print_r('<h4>Paste a new URL here:</h4>
@@ -483,14 +464,22 @@
                 </form>
                 <br><br>');
 
-        show_saved_urls($param_id);
+        show_user_urls($param_id, false);
 
-        if ($param_url != "")
+        // Add or remove URL
+        if ($param_id != "" && $param_url != "")
         {
-            $result = add_url($param_id, $param_url);
-            print_r($result);
+            $result = "";
+
+            if ($param_delete == "1")
+                $result = remove_url($param_id, $param_url);
+            else
+                $result = add_url($param_id, $param_url); 
+
+            print_r($result . "<br><br>");
         }
 
+        show_saved_urls($param_id);
         show_tools($param_id);
     }
 ?>
