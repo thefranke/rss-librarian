@@ -117,7 +117,7 @@
         if ($title == "")
             $title = $url;
 
-        if (!$g_extract_content)
+        if (!$g_extract_content || is_null($content))
             $content = "";
 
         $xmlstr = '<item>
@@ -371,7 +371,7 @@
         print_r('
         <section>
             <h2>Instance Info</h2>
-            # of managed feeds: ' .count_feeds() . '<br>
+            # of hosted feeds: ' .count_feeds() . '<br>
             Full-text extraction: ' . ($g_extract_content ? "True" : "False") . '<br>
             Max items per feed: ' . $g_max_items .'
         </section>');
@@ -474,7 +474,7 @@
             Please confirm that you have saved the following two URLs before continuing!
         </section>');
 
-        show_user_urls($param_id, false);
+        show_user_urls($param_id);
 
         print_r('
         <section>    
@@ -499,8 +499,6 @@
                 <input type="submit" value="Add to feed">
             </form>
         </section>');
-
-        show_user_urls($param_id, true);
 
         // Add or remove URL
         if ($param_id != "" && $param_url != "")
