@@ -390,12 +390,9 @@
     a:link, a:visited {
       color: #66397C;
     }
-    ul {
-      margin: 10px;
-    }
     #header {
         text-align: center;
-        margin: 24pt;
+        margin-bottom: 24pt;
     }
     h1, h2, h3, h4 {
         margin: 0;
@@ -404,7 +401,14 @@
         width: 120pt;
     }
     #feed-items {
-        text-align: left;
+        text-align: left;   
+    }
+    li {
+        width: 100%;
+        list-style-position:inside;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;   
     }
     @media (prefers-color-scheme: dark) {
         html {
