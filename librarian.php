@@ -37,6 +37,13 @@
         return $g_dir_feeds . "/" . $param_id . ".xml";
     }
 
+    // Produce URL for user feed
+    function get_feed_url($param_id)
+    {
+        global $g_url_librarian;
+        return $g_url_librarian . "/" . $param_id . ".xml";
+    }
+
     // Check if feed file exists
     function feed_file_exists($param_id)
     {
@@ -62,7 +69,7 @@
                 <title>RSS-Librarian (' . substr($param_id, 0, 4) . ')</title>
                 <description>A read-it-later service for RSS purists</description>
                 <link>' . $personal_url . '</link>
-                <atom:link href="' . $personal_url . '" rel="self" type="application/rss+xml" />
+                <atom:link href="' . get_feed_url($param_id) . '" rel="self" type="application/rss+xml" />
             </channel>
         </rss>
         ';
@@ -366,12 +373,9 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <link rel="shortcut icon" href="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
   <?php
-    $param_url = fetch_param("url");
-    $param_id = fetch_param("id");
-
     // User exists?
     if ($param_id != "")
-        print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_local_feed_file($param_id) . '">');
+        print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
   ?>
 
   <style>
