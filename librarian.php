@@ -47,8 +47,8 @@
     // Produce URL for user feed
     function get_feed_url($param_id)
     {
-        global $g_url_librarian;
-        return $g_url_librarian . "/" . $param_id . ".xml";
+        global $g_url_base;
+        return $g_url_base . "/" . get_local_feed_file($param_id);
     }
 
     // Check if feed file exists
@@ -347,7 +347,6 @@
     // Print message with tools for RSS feed management and instance information
     function show_footer($param_id)
     {
-        global $g_url_base;
         global $g_extract_content;
         global $g_max_items;
 
@@ -360,13 +359,13 @@
         if ($param_id != "")
         {
             $personal_url = get_personal_url($param_id);
-            $local_feed_file = get_local_feed_file($param_id);
 
             print('
             <h2>More tools</h2>
             <p>
                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-                <a href="https://feedreader.xyz/?url=' . urlencode($g_url_base . '/' . $local_feed_file) . '">Feed preview</a>
+                <a href="https://feedreader.xyz/?url=' . urlencode(get_feed_url($param_id)) . '">Feed preview</a>, 
+                <a href="https://www.rssboard.org/rss-validator/check.cgi?url=' . urlencode(get_feed_url($param_id)) . '>Validate feed</a>
             </p>');
         }
     
