@@ -365,7 +365,7 @@
             <p>
                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
                 <a href="https://feedreader.xyz/?url=' . urlencode(get_feed_url($param_id)) . '">Feed preview</a>, 
-                <a href="https://www.rssboard.org/rss-validator/check.cgi?url=' . urlencode(get_feed_url($param_id)) . '">Validate feed</a>
+                <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode(get_feed_url($param_id)) . '">Validate feed</a>
             </p>');
         }
     
