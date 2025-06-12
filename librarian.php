@@ -86,7 +86,6 @@
                 <title>RSS-Librarian (' . substr($param_id, 0, 4) . ')</title>
                 <description>A read-it-later service for RSS purists</description>
                 <link>' . $personal_url . '</link>
-                <atom:link href="' . get_feed_url($param_id) . '" rel="self" type="application/rss+xml" />
             </channel>
         </rss>
         ';
