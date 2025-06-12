@@ -11,7 +11,7 @@
     use fivefilters\Readability\ParseException;
 
     // Set to true if extracted content should be added to feed
-    $g_extract_content = false;
+    $g_extract_content = true;
 
     // Maximum length of feed
     $g_max_items = 100;
