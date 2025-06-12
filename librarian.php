@@ -122,13 +122,12 @@
         $xmlstr = '<item>
             <link>' . $url . '</link>
             <title>' . $title . '</title>
-
             <guid isPermaLink="true">' . $url .'</guid>
             <description>'
                 . htmlspecialchars($content) .
-            '</description>
-            <author>' . $author . '</author>
-            <pubDate>' . $pub_date . '</pubDate>
+            '</description>'
+            . (($author != "") ? ('<author>' . $author . '</author>') : '') .
+            '<pubDate>' . $pub_date . '</pubDate>
         </item>';
 
         return new SimpleXMLElement($xmlstr);
