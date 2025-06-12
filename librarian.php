@@ -259,6 +259,11 @@
             }
         }
 
+        // turn parameter into fully qualified URL
+        $parsed = parse_url($param_url);
+        if (empty($parsed['scheme']))
+            $param_url = 'https://' . ltrim($param_url, '/');
+
         // fetch rss content and add
         $item = extract_readability($param_url);
         sxml_append($xml->channel, $item);
