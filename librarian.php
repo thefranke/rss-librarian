@@ -237,6 +237,11 @@
     {
         global $g_max_items;
 
+        // turn parameter into fully qualified URL
+        $parsed = parse_url($param_url);
+        if (empty($parsed['scheme']))
+            $param_url = 'https://' . ltrim($param_url, '/');
+
         $local_feed_file = get_local_feed_file($param_id);
 
         $xml = update_feed_file($param_id);
@@ -258,11 +263,6 @@
                     return "URL already added";
             }
         }
-
-        // turn parameter into fully qualified URL
-        $parsed = parse_url($param_url);
-        if (empty($parsed['scheme']))
-            $param_url = 'https://' . ltrim($param_url, '/');
 
         // fetch rss content and add
         $item = extract_readability($param_url);
