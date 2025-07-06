@@ -356,7 +356,22 @@
             $personal_url = get_personal_url($param_id);
 
             print('
-            <h2>More tools</h2>
+            <h2>Your URLs</h2>
+            <p>
+                <a href="' . get_feed_url($param_id) . '">Your feed</a>,
+                <a href="' . get_feed_url($param_id) . '">Your personal URL</a>,
+            </p>
+
+            <h2>Readers</h2>
+            <p>  
+                <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
+                <a href="https://capyreader.com/">NetNewsWire (iOS/MacOS)</a>, 
+                <br>
+                <a href="https://www.feedflow.dev/">FeedFlow (Windows/Linux)</a>,
+                <a href="https://nodetics.com/feedbro/">FeedBro (Firefox/Chrome/Brave)</a>
+            </p>
+
+            <h2>Tools</h2>
             <p>
                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
                 <a href="https://feedreader.xyz/?url=' . urlencode(get_feed_url($param_id)) . '">Feed preview</a>, 
