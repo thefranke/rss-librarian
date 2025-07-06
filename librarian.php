@@ -58,7 +58,7 @@
     }
 
     // Helper to attach new XML element to existing one
-    function sxml_append(SimpleXMLElement $to, SimpleXMLElement $from)
+    function sxml_attach(SimpleXMLElement $to, SimpleXMLElement $from)
     {
         $toDom = dom_import_simplexml($to);
         $fromDom = dom_import_simplexml($from);
@@ -110,7 +110,7 @@
 
             // re-attach
             foreach($rss_sorted as $item)
-                sxml_append($rss_xml->channel, $item);
+                sxml_attach($rss_xml->channel, $item);
         }
 
         return $rss_xml;
@@ -259,17 +259,9 @@
 
         $rss_xml = read_feed_file($param_id);
 
+        // check if item already exists
         if ($rss_xml->channel->item)
         {
-            // check max item count, remove anything beyond
-            $c = $rss_xml->channel->item->count();
-            while ($c > $g_max_items)
-            {
-                unset($rss_xml->channel->item[0]);
-                $c--;
-            }
-
-            // check if item already exists
             foreach($rss_xml->channel->item as $item)
             {
                 if ($item->link == $param_url)
@@ -279,7 +271,15 @@
 
         // fetch rss content and add
         $item = extract_readability($param_url);
-        sxml_append($rss_xml->channel, $item);
+        sxml_attach($rss_xml->channel, $item);
+
+        // check max item count, remove anything beyond
+        $c = $rss_xml->channel->item->count();
+        while ($c > $g_max_items)
+        {
+            unset($rss_xml->channel->item[$c-1]);
+            $c--;
+        }
 
         write_feed_file($param_id, $rss_xml);
         return '<a href="' . $param_url . '">' . $param_url . '</a> added';
