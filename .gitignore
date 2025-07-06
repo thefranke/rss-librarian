@@ -1,3 +1,4 @@
 composer.*
 vendor/
 feeds/
+subscriptions/
