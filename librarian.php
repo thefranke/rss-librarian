@@ -99,11 +99,29 @@
         {
             $old_rss_xml = simplexml_load_string($local_feed_text);
 
-            foreach($old_rss_xml->channel->item as $item)
+            // sort by date newest to oldest
+            $rss_sorted = array();
+            foreach ($old_rss_xml->channel->item as $item)
+                $rss_sorted[] = $item;
+
+            usort($rss_sorted, function($a, $b) {
+                return strtotime($a->pubDate) - strtotime($b->pubDate);
+            });
+
+            // re-attach
+            foreach($rss_sorted as $item)
                 sxml_append($rss_xml->channel, $item);
         }
 
         return $rss_xml;
+    }
+
+    // Write XML data to feed file
+    function write_feed_file($param_id, $rss_xml)
+    {
+        // write to rss file
+        $local_feed_file = get_local_feed_file($param_id);
+        file_put_contents($local_feed_file, $rss_xml->asXml());
     }
 
     // Create XML element for an RSS item
@@ -204,32 +222,29 @@
     }
 
     // Remove URL from personal feed
-    function remove_url($user_id, $param_url)
+    function remove_url($param_id, $param_url)
     {
-        $local_feed_file = get_local_feed_file($user_id);
-        $local_feed_text = @file_get_contents($local_feed_file);
+        $rss_xml = read_feed_file($param_id);
 
-        if ($local_feed_text != "")
+        $i = 0;
+        $found = false;
+        foreach($rss_xml->channel->item as $item)
         {
-            $rss_xml = simplexml_load_string($local_feed_text);
-
-            $i = 0;
-            foreach($rss_xml->channel->item as $item)
+            if ($item->guid == $param_url)
             {
-                if ($item->guid == $param_url)
-                {
-                    unset($rss_xml->channel->item[$i]);
-                    break;
-                }
-                $i++;
+                unset($rss_xml->channel->item[$i]);
+                $found = true;
+                break;
             }
-
-            // write to rss file
-            file_put_contents($local_feed_file, $rss_xml->asXml());
-            return '<a href="' . $param_url . '">' . $param_url . '</a> removed';
+            $i++;
         }
 
-        return 'Url did not exist';
+        if ($found)
+        {
+            // write to rss file
+            write_feed_file($param_id, $rss_xml);
+            return '<a href="' . $param_url . '">' . $param_url . '</a> removed';
+        }
     }
 
     // Add URL to personal feed
@@ -242,20 +257,20 @@
         if (empty($parsed['scheme']))
             $param_url = 'https://' . ltrim($param_url, '/');
 
-        $xml = read_feed_file($param_id);
+        $rss_xml = read_feed_file($param_id);
 
-        if ($xml->channel->item)
+        if ($rss_xml->channel->item)
         {
             // check max item count, remove anything beyond
-            $c = $xml->channel->item->count();
-            while ($c >= $g_max_items)
+            $c = $rss_xml->channel->item->count();
+            while ($c > $g_max_items)
             {
-                unset($xml->channel->item[0]);
+                unset($rss_xml->channel->item[0]);
                 $c--;
             }
 
             // check if item already exists
-            foreach($xml->channel->item as $item)
+            foreach($rss_xml->channel->item as $item)
             {
                 if ($item->link == $param_url)
                     return "URL already added";
@@ -264,11 +279,9 @@
 
         // fetch rss content and add
         $item = extract_readability($param_url);
-        sxml_append($xml->channel, $item);
+        sxml_append($rss_xml->channel, $item);
 
-        // write to rss file
-        $local_feed_file = get_local_feed_file($param_id);
-        file_put_contents($local_feed_file, $xml->asXml());
+        write_feed_file($param_id, $rss_xml);
         return '<a href="' . $param_url . '">' . $param_url . '</a> added';
     }
 
@@ -310,31 +323,14 @@
         if ($param_id == "")
             return;
 
-        $local_feed_text = @file_get_contents(get_local_feed_file($param_id));
-        
-        // try to open local subscriptions for printing    
-        if ($local_feed_text == "")
-            return;
-
-        $rss_xml = simplexml_load_string($local_feed_text);
-
-        if (count($rss_xml->channel->item) == 0)
-            return;
-
-        $rss_sorted = array();
-        foreach ($rss_xml->channel->item as $item)
-            $rss_sorted[] = $item;
-
-        usort($rss_sorted, function($a, $b) {
-            return strtotime($b->pubDate) - strtotime($a->pubDate);
-        });
+        $rss_xml = read_feed_file($param_id);
 
         print('
         <section>
             <h2>Feed Items</h2>
             <ol>');
 
-        foreach($rss_sorted as $item)
+        foreach($rss_xml->channel->item as $item)
         {
             $title = $item->title != "" ? $item->title : $item->guid;
             print('
