@@ -443,16 +443,23 @@
             img {
                 width: 120pt;
             }
+            @counter-style pad-3 {
+                system: numeric;
+                symbols: "0" "1" "2" "3" "4" "5" "6" "7" "8" "9";
+                pad: 3 "0";
+            }
             ol, ul {
                 text-align: left;
+                list-style-type: pad-3;
+                list-style-position: inside;
             }
             li {
                 width: 100%;
-                list-style-position:inside;
                 white-space: nowrap;
                 overflow: hidden;
-                text-overflow: ellipsis;   
+                text-overflow: ellipsis;
             }
+            
             @media (prefers-color-scheme: dark) {
                 html {
                     background-color: #000;
