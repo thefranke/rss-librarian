@@ -67,8 +67,8 @@
         $toDom->insertBefore($new_node, $firstSibling);
     }
 
-    // Update feed files with new header
-    function update_feed_file($param_id)
+    // Read and update feed files with new header
+    function read_feed_file($param_id)
     {
         global $g_dir_feeds;
         global $g_url_librarian;
@@ -242,9 +242,7 @@
         if (empty($parsed['scheme']))
             $param_url = 'https://' . ltrim($param_url, '/');
 
-        $local_feed_file = get_local_feed_file($param_id);
-
-        $xml = update_feed_file($param_id);
+        $xml = read_feed_file($param_id);
 
         if ($xml->channel->item)
         {
@@ -269,6 +267,7 @@
         sxml_append($xml->channel, $item);
 
         // write to rss file
+        $local_feed_file = get_local_feed_file($param_id);
         file_put_contents($local_feed_file, $xml->asXml());
         return '<a href="' . $param_url . '">' . $param_url . '</a> added';
     }
