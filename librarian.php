@@ -354,9 +354,6 @@
         global $g_max_items;
 
         print('
-        
-        <hr>
-
         <section>');
 
         if ($param_id != "")
@@ -409,9 +406,8 @@
                 max-width: 50%;
                 min-width: 500px;
             }
-            hr {
-                border: 1px dashed;
-                margin: 15pt;
+            input {
+                font-size: 20pt;
             }
             a:link, a:visited {
                 color: #66397C;
@@ -420,13 +416,19 @@
                 font-size: 24pt;
             }
             section {
+                border-top: dashed 1px gray;
+                padding-top: 10pt;
                 margin-bottom: 24pt;
             }
             section:first-child {
                 margin-top: 40pt;
+                border: 0px;
             }
             h1, h2, h3, h4, ol, ul {
                 margin: 5pt;
+            }
+            ol, ul {
+                padding: 0;
             }
             img {
                 width: 120pt;
@@ -453,6 +455,15 @@
                     filter:invert(1);
                 }
             }
+            @media only screen 
+            and (min-device-width: 375px) 
+            and (max-device-width: 812px) 
+            and (orientation: portrait) { 
+                html {
+                    max-width: 90%;
+                    zoom: 180%;
+                }
+            }
         </style>
     </head>
     <body>
@@ -461,8 +472,6 @@
             <h1>RSS-Librarian</h1>
             <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
         </section>
-
-        <hr>
 <?php        
     // Adding URL for the first time, make sure user has saved their personal URLs!
     if ($param_id == "" && $param_url != "")
