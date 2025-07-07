@@ -384,7 +384,7 @@
             <h2>Instance Info</h2>
             <p>
                 # of hosted feeds: ' .count_feeds() . '<br>
-                Full-text extraction: ' . ($g_extract_content ? "True" : "False") . '<br>
+                Full-text extraction: ' . ($g_extract_content ? "Enabled" : "Disabled") . '<br>
                 Max items per feed: ' . $g_max_items . '
             </p>
         </section>');
