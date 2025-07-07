@@ -354,12 +354,13 @@
         if ($param_id != "")
         {
             $personal_url = get_personal_url($param_id);
+            $feed_url = get_feed_url($param_id);
 
             print('
             <h2>Your URLs</h2>
             <p>
-                <a href="' . get_feed_url($param_id) . '">Your feed</a>,
-                <a href="' . get_feed_url($param_id) . '">Your personal URL</a>,
+                <a href="' . $feed_url  . '">Your feed</a>,
+                <a href="' . $personal_url . '">Your personal URL</a>,
             </p>
 
             <h2>Readers</h2>
@@ -374,8 +375,8 @@
             <h2>Tools</h2>
             <p>
                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-                <a href="https://feedreader.xyz/?url=' . urlencode(get_feed_url($param_id)) . '">Feed preview</a>, 
-                <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode(get_feed_url($param_id)) . '">Validate feed</a>
+                <a href="https://feedreader.xyz/?url=' . urlencode($feed_url) . '">Feed preview</a>, 
+                <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>
             </p>');
         }
     
