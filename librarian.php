@@ -366,7 +366,7 @@
             <h2>Readers</h2>
             <p>  
                 <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
-                <a href="https://capyreader.com/">NetNewsWire (iOS/MacOS)</a>, 
+                <a href="https://netnewswire.com/">NetNewsWire (iOS/MacOS)</a>, 
                 <br>
                 <a href="https://www.feedflow.dev/">FeedFlow (Windows/Linux)</a>,
                 <a href="https://nodetics.com/feedbro/">FeedBro (Firefox/Chrome/Brave)</a>
