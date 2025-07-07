@@ -17,8 +17,8 @@
     $g_max_items = 100;
 
     // Base location
-    $g_url_base = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']);
-    $g_url_librarian = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $g_url_librarian = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
+    $g_url_base = dirname($g_url_librarian);
     
     // Directory of feed files
     $g_dir_feeds = "feeds";
