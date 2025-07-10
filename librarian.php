@@ -426,6 +426,12 @@
             h1 {
                 font-size: 24pt;
             }
+            h2 {
+                font-size: 20pt;
+            }
+            h3 {
+                font-size: 14pt;
+            }
             section {
                 border-top: dashed 1px gray;
                 padding-top: 10pt;
@@ -460,7 +466,6 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-            
             @media (prefers-color-scheme: dark) {
                 html {
                     background-color: #000;
@@ -474,12 +479,39 @@
                 }
             }
             @media only screen 
-            and (min-device-width: 375px) 
-            and (max-device-width: 812px) 
             and (orientation: portrait) { 
                 html {
                     max-width: 90%;
-                    zoom: 180%;
+                    font-size: 20pt;
+                }
+                section {
+                    padding-top: 20pt;
+                    margin-bottom: 48pt;
+                }
+                section:first-child {
+                    margin-top: 80pt;
+                }
+                img {
+                    width: 240pt;
+                }
+                input {
+                    font-size: 40pt;
+                    width: 70%;
+                }
+                h1 {
+                    font-size: 60pt;
+                }
+                h2 {
+                    font-size: 40pt;
+                }
+                h3 {
+                    font-size: 30pt;
+                }
+                li {
+                   margin-bottom: 20pt;
+                }
+                h1, h2, h3, h4, ol, ul {
+                    margin: 20pt;
                 }
             }
         </style>
