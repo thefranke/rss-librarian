@@ -386,13 +386,15 @@
 
         <style>
             html {
-                max-width: 50%;
-                margin: auto;
                 font-family: monospace;
                 font-size: 12pt;
                 color: #66397C;
                 background-color: #fff;
                 text-align: center;   
+            }
+            body {
+                margin: auto;
+                max-width: 50%;
             }
             input {
                 display: block;
@@ -402,6 +404,7 @@
             }
             input:first-child {
                 width: 70%;
+                border: 1px solid gray;
             }
             a {
                 color: #66397C;
@@ -462,14 +465,13 @@
                     height: 100vh;
                     zoom: 250%;
                 }
-                
                 li {
                     margin-bottom: 5pt;
                 }
             }
             @media only screen and (orientation: portrait) { 
-                html {
-                    max-width: 100%;
+                body {
+                    max-width: 95%;
                 }
             }
         </style>
