@@ -300,24 +300,6 @@
         return $g_url_librarian . '?id=' . $param_id;
     }
 
-    // Print message containing RSS url and personal url
-    function show_user_urls($param_id)
-    {
-        global $g_url_librarian;
-
-        if ($param_id == "")
-            return;
-
-        $personal_url = get_personal_url($param_id);
-        $local_feed_file = get_local_feed_file($param_id);
-        
-        print('
-        <section>
-            <h2>Your feed</h2>
-            Your <a href="'. $personal_url .'">personal URL</a> and <a href="' . $local_feed_file . '">personal RSS feed</a>
-        </section>');
-    }
-
     function show_saved_urls($param_id)
     {
         if ($param_id == "")
@@ -348,21 +330,24 @@
         global $g_extract_content;
         global $g_max_items;
 
+        $personal_url = get_personal_url($param_id);
+        $feed_url = get_feed_url($param_id);
+
         print('
-        <section>');
-
-        if ($param_id != "")
-        {
-            $personal_url = get_personal_url($param_id);
-            $feed_url = get_feed_url($param_id);
-
-            print('
-            <h2>Your URLs</h2>
+        <section>
+            <h2>Your feed</h2>
             <p>
-                <a href="' . $feed_url  . '">Your feed</a>,
-                <a href="' . $personal_url . '">Your personal URL</a>
+                Your <a href="'. $personal_url .'">personal URL</a> and 
+                <a href="' . $feed_url . '">personal RSS feed</a>
             </p>
 
+            <h2>Your tools</h2>
+            <p>
+                <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
+                <a href="https://feedreader.xyz/?url=' . urlencode($feed_url) . '">Feed preview</a>, 
+                <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>
+            </p>
+    
             <h2>Readers</h2>
             <p>  
                 <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
@@ -371,23 +356,15 @@
                 <a href="https://www.feedflow.dev/">FeedFlow (Windows/Linux)</a>,
                 <a href="https://nodetics.com/feedbro/">FeedBro (Firefox/Chrome/Brave)</a>
             </p>
-
-            <h2>Tools</h2>
-            <p>
-                <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-                <a href="https://feedreader.xyz/?url=' . urlencode($feed_url) . '">Feed preview</a>, 
-                <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>
-            </p>');
-        }
-    
-        print('
+        
             <h2>Instance Info</h2>
             <p>
                 # of hosted feeds: ' .count_feeds() . '<br>
                 Full-text extraction: ' . ($g_extract_content ? "Enabled" : "Disabled") . '<br>
                 Max items per feed: ' . $g_max_items . '
             </p>
-        </section>');
+        </section>
+        ');
     }
 
     $param_url = fetch_param("url");
@@ -508,24 +485,22 @@
     if ($param_id == "" && $param_url != "")
     {
         // Create new user id
-        $new_param_id = hash('sha256', random_bytes(18));
+        $param_id = hash('sha256', random_bytes(18));
 
         print('
         <section>
             <h2>You are about to create a new feed</h2>
-            Please confirm that you have saved the following two URLs before continuing!
-        </section>');
+            <p>
+                Please confirm that you bookmarked the two URLs in "Your feed" below before continuing!
+            </p>
 
-        show_user_urls($new_param_id);
-
-        print('
-        <section>    
             <form action="' . $g_url_librarian . '">
                 <input type="hidden" id="url" name="url" value="' . $param_url . '">
-                <input type="hidden" id="id"  name="id" value="' . $new_param_id . '">
+                <input type="hidden" id="id"  name="id" value="' . $param_id . '">
                 <input type="submit" value="Confirm">
             </form>
-        </section>');
+        </section>
+        ');
     }
 
     // Returning user view
