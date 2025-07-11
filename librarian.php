@@ -409,18 +409,24 @@
 
         <style>
             html {
+                max-width: 50%;
+                margin: auto;
                 font-family: monospace;
                 font-size: 12pt;
                 color: #66397C;
-                text-align: center;
-                margin: auto;
-                max-width: 50%;
-                min-width: 500px;
+                background-color: #fff;
+                text-align: center;   
             }
             input {
+                display: block;
+                margin: auto;
                 font-size: 20pt;
+                margin-bottom: 12pt;
             }
-            a:link, a:visited {
+            input:first-child {
+                width: 70%;
+            }
+            a {
                 color: #66397C;
             }
             h1 {
@@ -440,6 +446,9 @@
             section:first-child {
                 margin-top: 40pt;
                 border: 0px;
+            }
+            section:last-child{
+                padding-bottom: 40pt;
             }
             h1, h2, h3, h4, ol, ul {
                 margin: 5pt;
@@ -468,50 +477,22 @@
             }
             @media (prefers-color-scheme: dark) {
                 html {
-                    background-color: #000;
-                    color: #99c683;
-                }
-                a:link, a:visited {
-                    color: #99c683;
-                }
-                img {
-                    filter:invert(1);
+                    filter: invert(1) !important;
                 }
             }
-            @media only screen 
-            and (orientation: portrait) { 
+            @media only screen and (min-resolution: 3dppx) {
                 html {
-                    max-width: 90%;
-                    font-size: 20pt;
+                    height: 100vh;
+                    zoom: 250%;
                 }
-                section {
-                    padding-top: 20pt;
-                    margin-bottom: 48pt;
-                }
-                section:first-child {
-                    margin-top: 80pt;
-                }
-                img {
-                    width: 240pt;
-                }
-                input {
-                    font-size: 40pt;
-                    width: 70%;
-                }
-                h1 {
-                    font-size: 60pt;
-                }
-                h2 {
-                    font-size: 40pt;
-                }
-                h3 {
-                    font-size: 30pt;
-                }
+                
                 li {
-                   margin-bottom: 20pt;
+                    margin-bottom: 5pt;
                 }
-                h1, h2, h3, h4, ol, ul {
-                    margin: 20pt;
+            }
+            @media only screen and (orientation: portrait) { 
+                html {
+                    max-width: 100%;
                 }
             }
         </style>
@@ -556,7 +537,6 @@
             <form action="' . $g_url_librarian . '">
                 <input type="text" id="url" name="url">
                 <input type="hidden" id="id" name="id" value="' . $param_id . '">
-                <br><br>
                 <input type="submit" value="Add to feed">
             </form>');
 
