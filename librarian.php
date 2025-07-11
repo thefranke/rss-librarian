@@ -135,7 +135,7 @@
             $title = $url;
 
         if (!$g_extract_content || is_null($content))
-            $content = "";
+            $content = "Content extraction disabled, please enable reader mode for this feed.";
 
         $xmlstr = '<item>
             <link>' . $url . '</link>
@@ -215,7 +215,7 @@
         }
         catch (ParseException $e)
         {
-            $item = make_feed_item($url, $url, $url, "Could not extract content: " . $e->getMessage());
+            $item = make_feed_item($url, $url, $url, "Content extraction failed, please enable reader mode for this feed. " . $e->getMessage());
         }
 
         return $item;
