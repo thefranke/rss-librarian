@@ -512,7 +512,7 @@
         <section>
             <h2>Add a new URL to your feed</h2>
             <form action="' . $g_url_librarian . '">
-                <input type="text" id="url" name="url">
+                <input type="text" id="url" name="url" placeholder="https://some-url/example.html">
                 <input type="hidden" id="id" name="id" value="' . $param_id . '">
                 <input type="submit" value="Add to feed">
             </form>');
