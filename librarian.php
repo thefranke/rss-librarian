@@ -334,7 +334,10 @@
         $feed_url = get_feed_url($param_id);
 
         print('
-        <section>
+        <section>');
+
+        if ($param_id != "")
+        print('
             <h2>Your feed</h2>
             <p>
                 Your <a href="'. $personal_url .'">personal URL</a> and 
@@ -346,8 +349,9 @@
                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
                 <a href="https://feedreader.xyz/?url=' . urlencode($feed_url) . '">Feed preview</a>, 
                 <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>
-            </p>
+            </p>');
     
+        print('
             <h2>Readers</h2>
             <p>  
                 <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
