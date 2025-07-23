@@ -10,18 +10,32 @@
     use fivefilters\Readability\Configuration;
     use fivefilters\Readability\ParseException;
 
+
+
+    /** Configuration **/
+
     // Set to true if extracted content should be added to feed
     $g_extract_content = true;
 
     // Maximum length of feed
     $g_max_items = 100;
 
+    // Set to true if feeds are RSS 2.0, false if feeds are ATOM format
+    $g_use_rss_format = true;
+
+    // Directory of feed files
+    $g_dir_feeds = "feeds";
+
+    
+    
+    /** Code **/
+
     // Base location
     $g_url_librarian = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
     $g_url_base = dirname($g_url_librarian);
     
-    // Directory of feed files
-    $g_dir_feeds = "feeds";
+    // RSS-Librarian logo
+    $g_icon = "https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg";
 
     // Fetch parameters given to librarian
     function fetch_param($param)
@@ -67,61 +81,71 @@
         $toDom->insertBefore($new_node, $firstSibling);
     }
 
-    // Read and update feed files with new header
-    function read_feed_file($param_id)
+    function make_atom_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
-        global $g_dir_feeds;
         global $g_url_librarian;
+        global $g_icon;
 
-        // check for subs dir
-        if (!is_dir($g_dir_feeds))
-            mkdir($g_dir_feeds);
-
-        $personal_url = $g_url_librarian . '?id=' . $param_id;
-
-        // recreate base file so changes in the header are put in with every new release
-        $new_rss_base_text = '<?xml version="1.0" encoding="utf-8"?>
-        <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-            <channel>
-                <title>RSS-Librarian (' . substr($param_id, 0, 4) . ')</title>
-                <description>A read-it-later service for RSS purists</description>
-                <link>' . $personal_url . '</link>
-            </channel>
-        </rss>
+        return '<?xml version="1.0" encoding="utf-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom">
+                
+                <title>' . $title . '</title>
+                <link ref="self" href="' . $feed_url . '/>
+                <link href="' . $personal_url . '" />
+                
+                <updated>' . date("", $ts_updated) . '</updated>
+                <generator uri="' . $g_url_librarian . '" version="1.0">
+                    RSS-Librarian
+                </generator>
+                <icon>' . $g_icon .'</icon>
+                <logo>' . $g_icon .'</logo>
+            </feed>    
         ';
-
-        $rss_xml = simplexml_load_string($new_rss_base_text);
-        $local_feed_file = get_local_feed_file($param_id);
-
-        // try to open local subscriptions and copy items over
-        $local_feed_text = @file_get_contents($local_feed_file);
-        if ($local_feed_text != "")
-        {
-            $old_rss_xml = simplexml_load_string($local_feed_text);
-
-            // sort by date newest to oldest
-            $rss_sorted = array();
-            foreach ($old_rss_xml->channel->item as $item)
-                $rss_sorted[] = $item;
-
-            usort($rss_sorted, function($a, $b) {
-                return strtotime($a->pubDate) - strtotime($b->pubDate);
-            });
-
-            // re-attach
-            foreach($rss_sorted as $item)
-                sxml_attach($rss_xml->channel, $item);
-        }
-
-        return $rss_xml;
     }
 
-    // Write XML data to feed file
-    function write_feed_file($param_id, $rss_xml)
+    function make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
-        // write to rss file
-        $local_feed_file = get_local_feed_file($param_id);
-        file_put_contents($local_feed_file, $rss_xml->asXml());
+        global $g_url_librarian;
+        global $g_icon;
+
+        return '<?xml version="1.0" encoding="utf-8"?>
+            <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+                <channel>
+                    <title>' . $title . '</title>
+                    <description>' . $subtitle . '</description>
+                    <link>' . $personal_url . '</link>
+                </channel>
+            </rss>
+        ';
+    }
+
+    function make_atom_entry($url, $title, $author, $content, $pub_date)  
+    {
+        return '<entry>
+            <link href="' . $url . '" />
+            <title>' . htmlspecialchars($title) . '</title>
+            <id>' . $url .'</id>
+            <published>' . $pub_date . '</pubDate>
+            <updated>' . $pub_date . '</updated>
+            <description>'
+                . htmlspecialchars($content) .
+            '</description>'
+            . (($author != "") ? ('<author><name>' . htmlspecialchars($author) . '</name></author>') : '') . '
+        </entry>';
+    }
+
+    function make_rss_item($url, $title, $author, $content, $pub_date) 
+    {
+        return '<item>
+            <link>' . $url . '</link>
+            <title>' . htmlspecialchars($title) . '</title>
+            <guid isPermaLink="true">' . $url .'</guid>
+            <description>'
+                . htmlspecialchars($content) .
+            '</description>'
+            . (($author != "") ? ('<author>' . htmlspecialchars($author) . '</author>') : '') .
+            '<pubDate>' . $pub_date . '</pubDate>
+        </item>';
     }
 
     // Create XML element for an RSS item
@@ -137,18 +161,62 @@
         if (!$g_extract_content || is_null($content))
             $content = "Content extraction disabled, please enable reader mode for this feed.";
 
-        $xmlstr = '<item>
-            <link>' . $url . '</link>
-            <title>' . htmlspecialchars($title) . '</title>
-            <guid isPermaLink="true">' . $url .'</guid>
-            <description>'
-                . htmlspecialchars($content) .
-            '</description>'
-            . (($author != "") ? ('<author>' . htmlspecialchars($author) . '</author>') : '') .
-            '<pubDate>' . $pub_date . '</pubDate>
-        </item>';
+        $xmlstr = make_rss_item($url, $title, $author, $content, $pub_date);
 
         return new SimpleXMLElement($xmlstr);
+    }
+
+    // Read and update feed files with new header
+    function read_feed_file($param_id)
+    {
+        global $g_dir_feeds;
+        global $g_url_librarian;
+
+        // check for subs dir
+        if (!is_dir($g_dir_feeds))
+            mkdir($g_dir_feeds);
+
+        // recreate base file so changes in the header are put in with every new release
+        $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
+        $subtitle = 'A read-it-later service for RSS purists';
+        $personal_url = $g_url_librarian . '?id=' . $param_id;
+        $feed_url = get_feed_url($param_id);
+        $ts_updated = time();
+        
+        $feed_xml_str = make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
+
+        $feed_xml = simplexml_load_string($feed_xml_str);
+        $local_feed_file = get_local_feed_file($param_id);
+
+        // try to open local subscriptions and copy items over
+        $local_feed_text = @file_get_contents($local_feed_file);
+        if ($local_feed_text != "")
+        {
+            $old_feed_xml = simplexml_load_string($local_feed_text);
+
+            // sort by date newest to oldest
+            $rss_sorted = array();
+            foreach ($old_feed_xml->channel->item as $item)
+                $rss_sorted[] = $item;
+
+            usort($rss_sorted, function($a, $b) {
+                return strtotime($a->pubDate) - strtotime($b->pubDate);
+            });
+
+            // re-attach
+            foreach($rss_sorted as $item)
+                sxml_attach($feed_xml->channel, $item);
+        }
+
+        return $feed_xml;
+    }
+
+    // Write XML data to feed file
+    function write_feed_file($param_id, $rss_xml)
+    {
+        // write to rss file
+        $local_feed_file = get_local_feed_file($param_id);
+        file_put_contents($local_feed_file, $rss_xml->asXml());
     }
 
     // Extract content by piping through Readability.php
@@ -381,7 +449,7 @@
     <head>
         <title>RSS-Librarian</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <link rel="shortcut icon" href="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
+        <link rel="shortcut icon" href="<?php echo $g_icon; ?>">
         <?php
         // User exists?
         if ($param_id != "")
@@ -482,7 +550,7 @@
     </head>
     <body>
         <section>
-            <img alt="" src="https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg">
+            <img alt="" src="<?php echo $g_icon; ?>">
             <h1>RSS-Librarian</h1>
             <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
         </section>
