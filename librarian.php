@@ -81,6 +81,7 @@
         $toDom->insertBefore($new_node, $firstSibling);
     }
 
+    // Creates the base stub for an Atom feed
     function make_atom_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
         global $g_url_librarian;
@@ -90,7 +91,7 @@
             <feed xmlns="http://www.w3.org/2005/Atom">
                 
                 <title>' . $title . '</title>
-                <link ref="self" href="' . $feed_url . '/>
+                <link ref="self" href="' . $feed_url . '" />
                 <link href="' . $personal_url . '" />
                 
                 <updated>' . date("", $ts_updated) . '</updated>
@@ -103,6 +104,7 @@
         ';
     }
 
+    // Creates the base stub for an RSS feed
     function make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
         global $g_url_librarian;
@@ -119,22 +121,46 @@
         ';
     }
 
-    function make_atom_entry($url, $title, $author, $content, $pub_date)  
+    // Creates an XML element for a feed stub for the configured format (RSS or Atom)
+    function make_feed($param_id)
+    {
+        global $g_use_rss_format;
+        global $g_url_librarian;
+
+        $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
+        $subtitle = 'A read-it-later service for RSS purists';
+        $personal_url = $g_url_librarian . '?id=' . $param_id;
+        $feed_url = get_feed_url($param_id);
+        $ts_updated = time();
+
+        $feed_xml_str = '';
+
+        if ($g_use_rss_format)
+            $feed_xml_str = make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
+        else 
+            $feed_xml_str = make_atom_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
+
+        return simplexml_load_string($feed_xml_str);
+    }
+
+    // Creates an Atom feed entry
+    function make_atom_item($url, $title, $author, $content, $date)  
     {
         return '<entry>
             <link href="' . $url . '" />
             <title>' . htmlspecialchars($title) . '</title>
             <id>' . $url .'</id>
-            <published>' . $pub_date . '</pubDate>
-            <updated>' . $pub_date . '</updated>
-            <description>'
+            <published>' . date('Y-m-d\TH:i:s\Z', $date) . '</published>
+            <updated>' . date('Y-m-d\TH:i:s\Z', $date) . '</updated>
+            <content>'
                 . htmlspecialchars($content) .
-            '</description>'
+            '</content>'
             . (($author != "") ? ('<author><name>' . htmlspecialchars($author) . '</name></author>') : '') . '
         </entry>';
     }
 
-    function make_rss_item($url, $title, $author, $content, $pub_date) 
+    // Creates an RSS feed entry
+    function make_rss_item($url, $title, $author, $content, $date) 
     {
         return '<item>
             <link>' . $url . '</link>
@@ -144,83 +170,120 @@
                 . htmlspecialchars($content) .
             '</description>'
             . (($author != "") ? ('<author>' . htmlspecialchars($author) . '</author>') : '') .
-            '<pubDate>' . $pub_date . '</pubDate>
+            '<pubDate>' . date("D, d M Y H:i:s T", $date) . '</pubDate>
         </item>';
     }
 
     // Create XML element for an RSS item
-    function make_feed_item($url, $title, $author, $content)
+    function make_feed_item($item)
     {
         global $g_extract_content;
+        global $g_use_rss_format;
 
-        $pub_date = date("D, d M Y H:i:s T");
+        if (!isset($item['date']))
+            $item['date'] = time();
 
-        if ($title == "")
-            $title = $url;
+        if ($item['title'] == '')
+            $item['title'] = $item['url'];
 
-        if (!$g_extract_content || is_null($content))
-            $content = "Content extraction disabled, please enable reader mode for this feed.";
+        if (!$g_extract_content || !isset($item['content']) || is_null($item['content']))
+            $item['content'] = "Content extraction disabled, please enable reader mode for this feed.";
 
-        $xmlstr = make_rss_item($url, $title, $author, $content, $pub_date);
+        $item_xml_str = '';
+        if ($g_use_rss_format)
+            $item_xml_str = make_rss_item($item['url'], $item['title'], $item['author'], $item['content'], $item['date']);
+        else
+            $item_xml_str = make_atom_item($item['url'], $item['title'], $item['author'], $item['content'], $item['date']);
 
-        return new SimpleXMLElement($xmlstr);
+        return simplexml_load_string($item_xml_str);
     }
 
-    // Read and update feed files with new header
+    // Read RSS XML item and convert to internal item format
+    function read_rss_item($xml_item)
+    { 
+        return [
+            'url' => $xml_item->guid,
+            'title' => $xml_item->title,
+            'content' => $xml_item->description,
+            'date' => strtotime($xml_item->pubDate),
+            'author' => $xml_item->author,
+        ];
+    }
+
+    // Read RSS XML item and convert to internal item format
+    function read_atom_item($xml_item)
+    {
+        return [
+            'url' => $xml_item->id,
+            'title' => $xml_item->title,
+            'content' => $xml_item->content,
+            'date' => strtotime($xml_item->published),
+            'author' => $xml_item->author->name,
+        ];
+    }
+
+    // Read feed into an array of internal feed items sorted by date
     function read_feed_file($param_id)
     {
-        global $g_dir_feeds;
         global $g_url_librarian;
 
-        // check for subs dir
-        if (!is_dir($g_dir_feeds))
-            mkdir($g_dir_feeds);
-
-        // recreate base file so changes in the header are put in with every new release
-        $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
-        $subtitle = 'A read-it-later service for RSS purists';
-        $personal_url = $g_url_librarian . '?id=' . $param_id;
-        $feed_url = get_feed_url($param_id);
-        $ts_updated = time();
-        
-        $feed_xml_str = make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
-
-        $feed_xml = simplexml_load_string($feed_xml_str);
         $local_feed_file = get_local_feed_file($param_id);
 
-        // try to open local subscriptions and copy items over
+        $items_sorted = array();
+
+        // Try to open local subscriptions and copy items over
         $local_feed_text = @file_get_contents($local_feed_file);
         if ($local_feed_text != "")
         {
             $old_feed_xml = simplexml_load_string($local_feed_text);
 
-            // sort by date newest to oldest
-            $rss_sorted = array();
-            foreach ($old_feed_xml->channel->item as $item)
-                $rss_sorted[] = $item;
+            // Detect old feed file format
+            $is_rss = $old_feed_xml->getName() == "rss";
 
-            usort($rss_sorted, function($a, $b) {
-                return strtotime($a->pubDate) - strtotime($b->pubDate);
+            // read into array of internal items
+            if ($is_rss)
+            {
+                foreach ($old_feed_xml->channel->item as $xml_item)
+                    $items_sorted[] = read_rss_item($xml_item);
+            }
+            else
+            {
+                foreach ($old_feed_xml->entry as $xml_item)
+                    $items_sorted[] = read_atom_item($xml_item);
+            }
+
+            // Sort by date newest to oldest
+            usort($items_sorted, function($a, $b) {
+                return $b['date'] - $a['date'];
             });
-
-            // re-attach
-            foreach($rss_sorted as $item)
-                sxml_attach($feed_xml->channel, $item);
         }
 
-        return $feed_xml;
+        return $items_sorted;
     }
 
     // Write XML data to feed file
-    function write_feed_file($param_id, $rss_xml)
+    function write_feed_file($param_id, $items)
     {
+        global $g_dir_feeds;
+        global $g_use_rss_format;
+
+        // Check for subs dir
+        if (!is_dir($g_dir_feeds))
+            mkdir($g_dir_feeds);
+
+        $feed_xml = make_feed($param_id);
+        
+        // Re-attach
+        foreach($items as $item)
+            sxml_attach($g_use_rss_format ? $feed_xml->channel : $feed_xml, make_feed_item($item));
+
         // write to rss file
         $local_feed_file = get_local_feed_file($param_id);
-        file_put_contents($local_feed_file, $rss_xml->asXml());
+        file_put_contents($local_feed_file, $feed_xml->asXml());
     }
 
-    // Extract content by piping through Readability.php
-    function extract_readability($url)
+    // Extract content by piping through Readability.php and create an internal feed item
+    function extract_content($url)
     {
         $autoload = __DIR__ . '/vendor/autoload.php';
 
@@ -256,7 +319,13 @@
             $title = $ff_item->title;
             $content = $ff_item->description;
             $author = "";
-            return make_feed_item($url, $title, $author, $content);
+
+            return [
+                'url' => $url,
+                'title' => $title,
+                'content' => $content,
+                'author' => $author,
+            ]; 
         }
 
         if (function_exists('tidy_parse_string'))
@@ -271,7 +340,7 @@
             'originalURL' => $url,
         ]));
 
-        $item = "";
+        $item = [];
         try
         {
             $readability->parse($html);
@@ -279,11 +348,21 @@
             $title = $readability->getTitle();
             $content = $readability->getContent();
             $author = $readability->getAuthor();
-            $item = make_feed_item($url, $title, $author, $content);
+            $item = [
+                'url' => $url,
+                'title' => $title,
+                'content' => $content,
+                'author' => $author,
+            ];
         }
         catch (ParseException $e)
         {
-            $item = make_feed_item($url, $url, $url, "Content extraction failed, please enable reader mode for this feed. " . $e->getMessage());
+            $item = [
+                'url' => $url,
+                'title' => $url,
+                'content' => 'Content extraction failed, please enable reader mode for this feed. ' . $e->getMessage(),
+                'author' => '',
+            ];
         }
 
         return $item;
@@ -292,15 +371,15 @@
     // Remove URL from personal feed
     function remove_url($param_id, $param_url)
     {
-        $rss_xml = read_feed_file($param_id);
+        $items = read_feed_file($param_id);
 
         $i = 0;
         $found = false;
-        foreach($rss_xml->channel->item as $item)
+        foreach($items as $item)
         {
-            if ($item->guid == $param_url)
+            if ($item['url'] == $param_url)
             {
-                unset($rss_xml->channel->item[$i]);
+                unset($items[$i]);
                 $found = true;
                 break;
             }
@@ -310,7 +389,7 @@
         if ($found)
         {
             // write to rss file
-            write_feed_file($param_id, $rss_xml);
+            write_feed_file($param_id, $items);
             return '<a href="' . $param_url . '">' . $param_url . '</a> removed';
         }
     }
@@ -325,31 +404,27 @@
         if (empty($parsed['scheme']))
             $param_url = 'https://' . ltrim($param_url, '/');
 
-        $rss_xml = read_feed_file($param_id);
+        $items = read_feed_file($param_id);
 
         // check if item already exists
-        if ($rss_xml->channel->item)
+        foreach($items as $item)
         {
-            foreach($rss_xml->channel->item as $item)
-            {
-                if ($item->link == $param_url)
-                    return "URL already added";
-            }
+            if ($item['url'] == $param_url)
+                return "URL already added";
         }
 
-        // fetch rss content and add
-        $item = extract_readability($param_url);
-        sxml_attach($rss_xml->channel, $item);
-
         // check max item count, remove anything beyond
-        $c = $rss_xml->channel->item->count();
-        while ($c > $g_max_items)
+        $c = count($items);
+        while ($c >= $g_max_items)
         {
-            unset($rss_xml->channel->item[$c-1]);
+            unset($items[$c-1]);
             $c--;
         }
 
-        write_feed_file($param_id, $rss_xml);
+        // fetch content and add to items
+        array_unshift($items, extract_content($param_url));
+        
+        write_feed_file($param_id, $items);
         return '<a href="' . $param_url . '">' . $param_url . '</a> added';
     }
 
@@ -373,18 +448,18 @@
         if ($param_id == "")
             return;
 
-        $rss_xml = read_feed_file($param_id);
+        $items = read_feed_file($param_id);
 
         print('
         <section>
             <h2>Feed Items</h2>
             <ol>');
 
-        foreach($rss_xml->channel->item as $item)
+        foreach($items as $item)
         {
-            $title = $item->title != "" ? $item->title : $item->guid;
+            $title = $item['title'] != "" ? $item['title'] : $item['url'];
             print('
-                <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item->guid). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item->guid. '" target="_blank">' . $title . '</a></li>');
+                <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item['url']). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item['url']. '" target="_blank">' . $title . '</a></li>');
         }
 
         print('
@@ -395,6 +470,7 @@
     // Print message with tools for RSS feed management and instance information
     function show_footer($param_id)
     {
+        global $g_use_rss_format;
         global $g_extract_content;
         global $g_max_items;
 
@@ -433,7 +509,8 @@
             <p>
                 # of hosted feeds: ' .count_feeds() . '<br>
                 Full-text extraction: ' . ($g_extract_content ? "Enabled" : "Disabled") . '<br>
-                Max items per feed: ' . $g_max_items . '
+                Max items per feed: ' . $g_max_items . '<br>
+                Feed format: ' . ($g_use_rss_format ? 'RSS 2.0' : 'Atom') . '
             </p>
         </section>
         ');
