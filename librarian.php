@@ -90,11 +90,11 @@
         return '<?xml version="1.0" encoding="utf-8"?>
             <feed xmlns="http://www.w3.org/2005/Atom">
                 
+                <link rel="self" href="' .$feed_url . '" />
                 <title>' . $title . '</title>
-                <link ref="self" href="' . $feed_url . '" />
-                <link href="' . $personal_url . '" />
+                <id>' . $personal_url . '</id>
                 
-                <updated>' . date("", $ts_updated) . '</updated>
+                <updated>' . date('Y-m-d\TH:i:s\Z', $ts_updated) . '</updated>
                 <generator uri="' . $g_url_librarian . '" version="1.0">
                     RSS-Librarian
                 </generator>
@@ -116,6 +116,8 @@
                     <title>' . $title . '</title>
                     <description>' . $subtitle . '</description>
                     <link>' . $personal_url . '</link>
+                    <generator>RSS-Librarian</generator>
+                    <atom:link href="' . $feed_url . '" rel="self" type="application/rss+xml" />
                 </channel>
             </rss>
         ';
