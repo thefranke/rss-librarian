@@ -51,6 +51,28 @@
         return "";
     }
 
+    // Sanitize a string to remove any invalid characters
+    function sanitize_text($s)
+    {
+        $s = trim($s);
+
+         // drop all non utf-8 characters
+        $s = iconv("UTF-8", "UTF-8//IGNORE", $s);
+
+        // remove control characters
+        $s = preg_replace('/(?>[\x00-\x1F]|\xC2[\x80-\x9F]|\xE2[\x80-\x8F]{2}|\xE2\x80[\xA4-\xA8]|\xE2\x81[\x9F-\xAF])/', ' ', $s);
+        
+        // reduce all multiple whitespace to a single space
+        $s = preg_replace('/\s+/', ' ', $s); 
+
+        $s = html_entity_decode($s);
+        $s = htmlspecialchars($s);
+
+        return $s;
+    }
+
+    }
+
     // Produce path for local feed file
     function get_local_feed_file($param_id)
     {
@@ -149,15 +171,16 @@
     function make_atom_item($url, $title, $author, $content, $date)  
     {
         return '<entry>
-            <link href="' . $url . '" />
-            <title>' . htmlspecialchars($title) . '</title>
+            <title>' . sanitize_text($title) . '</title>
             <id>' . $url .'</id>
             <published>' . date('Y-m-d\TH:i:s\Z', $date) . '</published>
             <updated>' . date('Y-m-d\TH:i:s\Z', $date) . '</updated>
-            <content>'
-                . htmlspecialchars($content) .
-            '</content>'
-            . (($author != "") ? ('<author><name>' . htmlspecialchars($author) . '</name></author>') : '') . '
+            <content type="html">'
+                . sanitize_text($content) .
+            '</content>
+            <author>
+                <name>' . (($author != "") ? sanitize_text($author) : $url) . '</name>
+            </author>
         </entry>';
     }
 
@@ -166,13 +189,13 @@
     {
         return '<item>
             <link>' . $url . '</link>
-            <title>' . htmlspecialchars($title) . '</title>
+            <title>' . sanitize_text($title) . '</title>
             <guid isPermaLink="true">' . $url .'</guid>
             <description>'
-                . htmlspecialchars($content) .
+                . sanitize_text($content) .
             '</description>'
-            . (($author != "") ? ('<author>' . htmlspecialchars($author) . '</author>') : '') .
-            '<pubDate>' . date("D, d M Y H:i:s T", $date) . '</pubDate>
+            . (($author != "") ? ('<author>no@mail (' . sanitize_text($author) . ')</author>') : '') .
+            '<pubDate>' . date("D, d M Y H:i:s O", $date) . '</pubDate>
         </item>';
     }
 
@@ -207,10 +230,10 @@
     { 
         return [
             'url' => $xml_item->guid,
-            'title' => $xml_item->title,
+            'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->description,
             'date' => strtotime($xml_item->pubDate),
-            'author' => $xml_item->author,
+            'author' => sanitize_text($xml_item->author),
         ];
     }
 
@@ -219,10 +242,10 @@
     {
         return [
             'url' => $xml_item->id,
-            'title' => $xml_item->title,
+            'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->content,
             'date' => strtotime($xml_item->published),
-            'author' => $xml_item->author->name,
+            'author' => sanitize_text($xml_item->author->name),
         ];
     }
 
@@ -639,7 +662,7 @@
             <h1>RSS-Librarian</h1>
             <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
         </section>
-<?php        
+<?php
     // Adding URL for the first time, make sure user has saved their personal URLs!
     if ($param_id == "" && $param_url != "")
     {
