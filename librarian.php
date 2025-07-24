@@ -281,9 +281,13 @@
         foreach($items as $item)
             sxml_attach($g_use_rss_format ? $feed_xml->channel : $feed_xml, make_feed_item($item));
 
-        // write to rss file
+        // write formatted xml to feed file
         $local_feed_file = get_local_feed_file($param_id);
-        file_put_contents($local_feed_file, $feed_xml->asXml());
+        $dom = new DOMDocument("1.0");
+        $dom->preserveWhiteSpace = false;
+        $dom->formatOutput = true;
+        $dom->loadXML($feed_xml->asXML());
+        file_put_contents($local_feed_file, $dom->saveXML());
     }
 
     // Extract content by piping through Readability.php and create an internal feed item
