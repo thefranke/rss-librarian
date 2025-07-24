@@ -182,14 +182,16 @@
         global $g_extract_content;
         global $g_use_rss_format;
 
-        if (!isset($item['date']))
+        if (!array_key_exists('date', $item) || $item['date'] == 0)
             $item['date'] = time();
 
-        if ($item['title'] == '')
+        if (!array_key_exists('title', $item) || $item['title'] == '')
             $item['title'] = $item['url'];
 
-        if (!$g_extract_content || !isset($item['content']) || is_null($item['content']))
-            $item['content'] = "Content extraction disabled, please enable reader mode for this feed.";
+        if (!$g_extract_content)
+            $item['content'] = 'Content extraction disabled or failed, please enable reader mode for this entry.';
+        else if (!array_key_exists('content', $item) || $item['content'] == '')
+            $item['content'] = 'Content extraction failed, please enable reader mode for this entry.';
 
         $item_xml_str = '';
         if ($g_use_rss_format)
