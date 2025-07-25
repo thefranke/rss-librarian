@@ -24,7 +24,7 @@
     $g_use_rss_format = true;
 
     // Directory of feed files
-    $g_dir_feeds = "feeds";
+    $g_dir_feeds = 'feeds';
 
     
     
@@ -35,7 +35,7 @@
     $g_url_base = dirname($g_url_librarian);
     
     // RSS-Librarian logo
-    $g_icon = "https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg";
+    $g_icon = 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg';
 
     // Fetch parameters given to librarian
     function fetch_param($param)
@@ -48,7 +48,7 @@
                 return $v;
         }
 
-        return "";
+        return '';
     }
 
     // Sanitize a string to remove any invalid characters
@@ -72,14 +72,14 @@
     function get_local_feed_file($param_id)
     {
         global $g_dir_feeds;
-        return $g_dir_feeds . "/" . $param_id . ".xml";
+        return $g_dir_feeds . '/' . $param_id . '.xml';
     }
 
     // Produce URL for user feed
     function get_feed_url($param_id)
     {
         global $g_url_base;
-        return $g_url_base . "/" . get_local_feed_file($param_id);
+        return $g_url_base . '/' . get_local_feed_file($param_id);
     }
 
     // Check if feed file exists
@@ -174,7 +174,7 @@
                 . sanitize_text($content) .
             '</content>
             <author>
-                <name>' . (($author != "") ? sanitize_text($author) : $url) . '</name>
+                <name>' . (($author != '') ? sanitize_text($author) : $url) . '</name>
             </author>
         </entry>';
     }
@@ -226,7 +226,7 @@
 
     // Read RSS XML item and convert to internal item format
     function read_rss_item($xml_item)
-    { 
+    {
         return [
             'url' => $xml_item->guid,
             'title' => sanitize_text($xml_item->title),
@@ -259,12 +259,12 @@
 
         // Try to open local subscriptions and copy items over
         $local_feed_text = @file_get_contents($local_feed_file);
-        if ($local_feed_text != "")
+        if ($local_feed_text != '')
         {
             $old_feed_xml = simplexml_load_string($local_feed_text);
 
             // Detect old feed file format
-            $is_rss = $old_feed_xml->getName() == "rss";
+            $is_rss = $old_feed_xml->getName() == 'rss';
 
             // read into array of internal items
             if ($is_rss)
@@ -305,7 +305,7 @@
 
         // write formatted xml to feed file
         $local_feed_file = get_local_feed_file($param_id);
-        $dom = new DOMDocument("1.0");
+        $dom = new DOMDocument('1.0');
         $dom->preserveWhiteSpace = false;
         $dom->formatOutput = true;
         $dom->loadXML($feed_xml->asXML());
@@ -317,7 +317,7 @@
     {
         $autoload = __DIR__ . '/vendor/autoload.php';
 
-        $html = "";
+        $html = '';
 
         if (file_exists($autoload))
         {
@@ -334,21 +334,21 @@
         }
 
         // No local Readability.php installed, use FiveFilters
-        if ($html == "")
+        if ($html == '')
         {
-            $feed_url = "https://ftr.fivefilters.net/makefulltextfeed.php?url=" . urlencode($url);
+            $feed_url = 'https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url);
 
             $feed_item = file_get_contents($feed_url);
 
             // error handling remove everything until first <
-            $start = strpos($feed_item, "<");
+            $start = strpos($feed_item, '<');
             $feed_item = substr($feed_item, $start);
             $xml = simplexml_load_string($feed_item);
             $ff_item = $xml->channel->item[0];
 
             $title = $ff_item->title;
             $content = $ff_item->description;
-            $author = "";
+            $author = '';
 
             return [
                 'url' => $url,
@@ -440,7 +440,7 @@
         foreach($items as $item)
         {
             if ($item['url'] == $param_url)
-                return "URL already added";
+                return 'URL already added';
         }
 
         // check max item count, remove anything beyond
@@ -462,7 +462,7 @@
     function count_feeds()
     {
         global $g_dir_feeds;
-        $filecount = count(glob($g_dir_feeds . "/*.xml"));
+        $filecount = count(glob($g_dir_feeds . '/*.xml'));
         return $filecount;
     }
 
@@ -475,7 +475,7 @@
 
     function show_saved_urls($param_id)
     {
-        if ($param_id == "")
+        if ($param_id == '')
             return;
 
         $items = read_feed_file($param_id);
@@ -487,7 +487,7 @@
 
         foreach($items as $item)
         {
-            $title = $item['title'] != "" ? $item['title'] : $item['url'];
+            $title = $item['title'] != '' ? $item['title'] : $item['url'];
             print('
                 <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item['url']). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item['url']. '" target="_blank">' . $title . '</a></li>');
         }
@@ -510,7 +510,7 @@
         print('
         <section>');
 
-        if ($param_id != "")
+        if ($param_id != '')
         print('
             <h2>Your feed</h2>
             <p>
@@ -538,7 +538,7 @@
             <h2>Instance Info</h2>
             <p>
                 # of hosted feeds: ' .count_feeds() . '<br>
-                Full-text extraction: ' . ($g_extract_content ? "Enabled" : "Disabled") . '<br>
+                Full-text extraction: ' . ($g_extract_content ? 'Enabled' : 'Disabled') . '<br>
                 Max items per feed: ' . $g_max_items . '<br>
                 Feed format: ' . ($g_use_rss_format ? 'RSS 2.0' : 'Atom') . '
             </p>
@@ -546,9 +546,9 @@
         ');
     }
 
-    $param_url = fetch_param("url");
-    $param_id = fetch_param("id");
-    $param_delete = fetch_param("delete");
+    $param_url = fetch_param('url');
+    $param_id = fetch_param('id');
+    $param_delete = fetch_param('delete');
 ?>
 
 <!DOCTYPE html>
@@ -559,7 +559,7 @@
         <link rel="shortcut icon" href="<?php echo $g_icon; ?>">
         <?php
         // User exists?
-        if ($param_id != "")
+        if ($param_id != '')
             print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
         ?>
 
@@ -663,7 +663,7 @@
         </section>
 <?php
     // Adding URL for the first time, make sure user has saved their personal URLs!
-    if ($param_id == "" && $param_url != "")
+    if ($param_id == '' && $param_url != '')
     {
         // Create new user id
         $param_id = hash('sha256', random_bytes(18));
@@ -697,17 +697,17 @@
             </form>');
 
         // Add or remove URL
-        if ($param_id != "" && $param_url != "")
+        if ($param_id != '' && $param_url != '')
         {
-            $result = "";
+            $result = '';
 
-            if ($param_delete == "1")
+            if ($param_delete == '1')
                 $result = remove_url($param_id, $param_url);
             else
                 $result = add_url($param_id, $param_url); 
 
             print('
-            <p>' . $result . "</p>");
+            <p>' . $result . '</p>');
         }
 
         print('
