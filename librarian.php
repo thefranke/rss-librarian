@@ -515,7 +515,7 @@
             <h2>Your feed</h2>
             <p>
                 Your <a href="'. $personal_url .'">personal URL</a> and 
-                <a href="' . $feed_url . '">personal RSS feed</a>
+                <a href="' . $feed_url . '">personal feed</a>
             </p>
 
             <h2>Your tools</h2>
