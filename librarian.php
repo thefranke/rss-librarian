@@ -182,6 +182,10 @@
     // Creates an RSS feed entry
     function make_rss_item($url, $title, $author, $content, $date) 
     {
+        // RSS requires a qualified email for a valid author name
+        if (!strpos($author, '@'))
+            $author = 'no@mail (' . $author . ')';
+
         return '<item>
             <link>' . $url . '</link>
             <title>' . sanitize_text($title) . '</title>
@@ -189,8 +193,8 @@
             <description>'
                 . sanitize_text($content) .
             '</description>'
-            . (($author != "") ? ('<author>no@mail (' . sanitize_text($author) . ')</author>') : '') .
-            '<pubDate>' . date("D, d M Y H:i:s O", $date) . '</pubDate>
+            . (($author != '') ? ('<author>' . sanitize_text($author) . '</author>') : '') .
+            '<pubDate>' . date('D, d M Y H:i:s O', $date) . '</pubDate>
         </item>';
     }
 
