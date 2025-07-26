@@ -8,10 +8,10 @@ https://alternator.hstn.me/librarian.php
 
 The project was born out of [a personal frustration of mine](https://github.com/Ranchero-Software/NetNewsWire/issues/3023): My workflow for reading anything I am interested in is by adding a star in my RSS reader to an article, which necessitates that anything I want to read is somehow a subscription I can add to my RSS reader, and that isn't true for single articles I get sent by someone.
 
-RSS-Librarian solves this issue with a self-hostable PHP file by extracting content from articles using [a readability service](https://www.fivefilters.org/) and directly writing them as new entries into a *personal RSS feed*, without requiring special libraries, a database or user accounts.
+RSS-Librarian solves this issue with a self-hostable PHP file by extracting content from articles using [a readability service](https://www.fivefilters.org/) and directly writing them as new entries into a *personal feed*, without requiring special libraries, a database or user accounts.
 
 Consider RSS-Librarian if you want to:
-* Store single articles in a RSS reader application
+* Store a collection of articles in a feed reader application
 * Avoid third-party read-it-later services such as [Pocket](https://getpocket.com), [Instapaper](https://www.instapaper.com) or [Wallabag](https://wallabag.org/)
 * Minimize the amount of necessary apps for reading articles
 * Get rid of accounts and not sign up to anything
