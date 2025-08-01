@@ -18,14 +18,16 @@
     $g_extract_content = true;
 
     // Maximum length of feed
-    $g_max_items = 100;
+    $g_max_items = 25;
 
-    // Set to true if feeds are RSS 2.0, false if feeds are ATOM format
+    // Set to true to store feeds as RSS 2.0, false as Atom
     $g_use_rss_format = true;
 
     // Directory of feed files
     $g_dir_feeds = 'feeds';
 
+    // Instance administrator contact
+    $g_instance_contact = '<a href="https://github.com/thefranke/rss-librarian/issues">Open a Github Issue</a>';
     
     
     /** Code **/
@@ -56,10 +58,10 @@
     {
         $s = trim($s);
 
-        // remove control characters
+        // Remove control characters
         $s = preg_replace('/(?>[\x00-\x1F]|\xC2[\x80-\x9F]|\xE2[\x80-\x8F]{2}|\xE2\x80[\xA4-\xA8]|\xE2\x81[\x9F-\xAF])/', ' ', $s);
         
-        // reduce all multiple whitespace to a single space
+        // Reduce all multiple whitespace to a single space
         $s = preg_replace('/\s+/', ' ', $s); 
 
         $s = html_entity_decode($s);
@@ -174,7 +176,7 @@
                 . sanitize_text($content) .
             '</content>
             <author>
-                <name>' . (($author != '') ? sanitize_text($author) : $url) . '</name>
+                <name>' . (!empty($author) ? sanitize_text($author) : $url) . '</name>
             </author>
         </entry>';
     }
@@ -303,7 +305,7 @@
         foreach($items as $item)
             sxml_attach($g_use_rss_format ? $feed_xml->channel : $feed_xml, make_feed_item($item));
 
-        // write formatted xml to feed file
+        // Write formatted xml to feed file
         $local_feed_file = get_local_feed_file($param_id);
         $dom = new DOMDocument('1.0');
         $dom->preserveWhiteSpace = false;
@@ -473,6 +475,8 @@
         return $g_url_librarian . '?id=' . $param_id;
     }
 
+    // Display a list of URLs that are saved in the feed 
+    // already and allow users to remove items
     function show_saved_urls($param_id)
     {
         if ($param_id == '')
@@ -503,6 +507,7 @@
         global $g_use_rss_format;
         global $g_extract_content;
         global $g_max_items;
+        global $g_instance_contact;
 
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
@@ -541,7 +546,8 @@
                 # of hosted feeds: ' .count_feeds() . '<br>
                 Full-text extraction: ' . ($g_extract_content ? 'Enabled' : 'Disabled') . '<br>
                 Max items per feed: ' . $g_max_items . '<br>
-                Feed format: ' . ($g_use_rss_format ? 'RSS 2.0' : 'Atom') . '
+                Feed format: ' . ($g_use_rss_format ? 'RSS 2.0' : 'Atom') . '<br>' .
+                ((!empty($g_instance_contact)) ? 'Contact: ' . $g_instance_contact : '') . '
             </p>
         </section>
         ');
@@ -557,7 +563,7 @@
     <head>
         <title>RSS-Librarian</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <link rel="shortcut icon" href="<?php echo $g_icon; ?>">
+        <link rel="shortcut icon" href="<?php print($g_icon); ?>">
         <?php
         // User exists?
         if ($param_id != '')
@@ -658,8 +664,9 @@
     </head>
     <body>
         <section>
-            <img alt="" src="<?php echo $g_icon; ?>">
+            <img alt="" src="<?php print($g_icon); ?>">
             <h1>RSS-Librarian</h1>
+            <h3>"Knoweldge is power, <em>store</em> it well"</h3>
             <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
         </section>
 <?php
