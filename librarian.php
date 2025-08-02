@@ -10,9 +10,8 @@
     use fivefilters\Readability\Configuration;
     use fivefilters\Readability\ParseException;
 
-
-
-    /** Configuration **/
+    // Modify settings below after a first run in the following file rather than in source
+    $g_config_file = 'rsslibrarian-config.json';
 
     // Set to true if extracted content should be added to feed
     $g_extract_content = true;
@@ -29,15 +28,50 @@
     // Instance administrator contact
     $g_instance_contact = '<a href="https://github.com/thefranke/rss-librarian/issues">Open a Github Issue</a>';
     
-    
-    /** Code **/
-
     // Base location
     $g_url_librarian = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
     $g_url_base = dirname($g_url_librarian);
     
     // RSS-Librarian logo
     $g_icon = 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg';
+
+    // Read configuration from JSON file
+    function update_configuration()
+    {
+        global $g_config_file;
+
+        global $g_extract_content;
+        global $g_max_items;
+        global $g_use_rss_format;
+        global $g_dir_feeds;
+        global $g_instance_contact;
+        
+        $json = @file_get_contents($g_config_file);
+
+        // No config file found, create one
+        if (empty($json))
+        {
+            file_put_contents($g_config_file, json_encode([
+                'extract_content' => $g_extract_content,
+                'max_items' => $g_max_items,
+                'use_rss_format' => $g_use_rss_format,
+                'dir_feeds' => $g_dir_feeds,
+                'instance_contact' => $g_instance_contact,
+            ], JSON_PRETTY_PRINT));
+        }
+
+        // Read back configuration
+        else
+        {
+            $data = json_decode($json);
+
+            $g_extract_content = $data->extract_content;
+            $g_max_items = $data->max_items;
+            $g_use_rss_format = $data->use_rss_format;
+            $dir_feeds = $data->dir_feeds;
+            $instance_contact = $data->instance_contact;
+        }
+    }
 
     // Fetch parameters given to librarian
     function fetch_param($param)
@@ -552,6 +586,8 @@
         </section>
         ');
     }
+
+    update_configuration();
 
     $param_url = fetch_param('url');
     $param_id = fetch_param('id');
