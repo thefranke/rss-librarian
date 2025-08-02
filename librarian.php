@@ -176,7 +176,7 @@
                 . sanitize_text($content) .
             '</content>
             <author>
-                <name>' . (!empty($author) ? sanitize_text($author) : $url) . '</name>
+                <name>' . ((!empty($author)) ? sanitize_text($author) : $url) . '</name>
             </author>
         </entry>';
     }
@@ -185,8 +185,8 @@
     function make_rss_item($url, $title, $author, $content, $date) 
     {
         // RSS requires a qualified email for a valid author name
-        if (!strpos($author, '@'))
-            $author = 'no@mail (' . $author . ')';
+        if (empty($author) || !strpos($author, '@'))
+            $author = 'no@mail' . ((empty($author)) ? '' : '(' . $author . ')');
 
         return '<item>
             <link>' . $url . '</link>
@@ -195,7 +195,7 @@
             <description>'
                 . sanitize_text($content) .
             '</description>'
-            . (($author != '') ? ('<author>' . sanitize_text($author) . '</author>') : '') .
+            . ((!empty($author)) ? ('<author>' . sanitize_text($author) . '</author>') : '') .
             '<pubDate>' . date('D, d M Y H:i:s O', $date) . '</pubDate>
         </item>';
     }
@@ -209,12 +209,12 @@
         if (!array_key_exists('date', $item) || $item['date'] == 0)
             $item['date'] = time();
 
-        if (!array_key_exists('title', $item) || $item['title'] == '')
+        if (!array_key_exists('title', $item) || empty($item['title']))
             $item['title'] = $item['url'];
 
         if (!$g_extract_content)
             $item['content'] = 'Content extraction disabled or failed, please enable reader mode for this entry.';
-        else if (!array_key_exists('content', $item) || $item['content'] == '')
+        else if (!array_key_exists('content', $item) || empty($item['content']))
             $item['content'] = 'Content extraction failed, please enable reader mode for this entry.';
 
         $item_xml_str = '';
@@ -261,7 +261,7 @@
 
         // Try to open local subscriptions and copy items over
         $local_feed_text = @file_get_contents($local_feed_file);
-        if ($local_feed_text != '')
+        if (!empty($local_feed_text))
         {
             $old_feed_xml = simplexml_load_string($local_feed_text);
 
@@ -336,7 +336,7 @@
         }
 
         // No local Readability.php installed, use FiveFilters
-        if ($html == '')
+        if (empty($html))
         {
             $feed_url = 'https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url);
 
@@ -479,7 +479,7 @@
     // already and allow users to remove items
     function show_saved_urls($param_id)
     {
-        if ($param_id == '')
+        if (empty($param_id))
             return;
 
         $items = read_feed_file($param_id);
@@ -491,7 +491,7 @@
 
         foreach($items as $item)
         {
-            $title = $item['title'] != '' ? $item['title'] : $item['url'];
+            $title = (!empty($item['title'])) ? $item['title'] : $item['url'];
             print('
                 <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item['url']). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item['url']. '" target="_blank">' . $title . '</a></li>');
         }
@@ -515,7 +515,7 @@
         print('
         <section>');
 
-        if ($param_id != '')
+        if (!empty($param_id))
         print('
             <h2>Your feed</h2>
             <p>
@@ -543,7 +543,7 @@
         
             <h2>Instance Info</h2>
             <p>
-                # of hosted feeds: ' .count_feeds() . '<br>
+                # of hosted feeds: ' . count_feeds() . '<br>
                 Full-text extraction: ' . ($g_extract_content ? 'Enabled' : 'Disabled') . '<br>
                 Max items per feed: ' . $g_max_items . '<br>
                 Feed format: ' . ($g_use_rss_format ? 'RSS 2.0' : 'Atom') . '<br>' .
@@ -566,7 +566,7 @@
         <link rel="shortcut icon" href="<?php print($g_icon); ?>">
         <?php
         // User exists?
-        if ($param_id != '')
+        if (!empty($param_id))
             print('<link rel="alternate" type="application/rss+xml" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
         ?>
 
@@ -671,7 +671,7 @@
         </section>
 <?php
     // Adding URL for the first time, make sure user has saved their personal URLs!
-    if ($param_id == '' && $param_url != '')
+    if (empty($param_id) && !empty($param_url))
     {
         // Create new user id
         $param_id = hash('sha256', random_bytes(18));
@@ -705,7 +705,7 @@
             </form>');
 
         // Add or remove URL
-        if ($param_id != '' && $param_url != '')
+        if (!empty($param_id) && !empty($param_url))
         {
             $result = '';
 
