@@ -700,7 +700,7 @@
     </head>
     <body>
         <section>
-            <img alt="" src="<?php print($g_icon); ?>">
+            <a href="librarian.php"><img alt="" src="<?php print($g_icon); ?>"></a>
             <h1>RSS-Librarian</h1>
             <h3>"Knoweldge is power, store it well"</h3>
             <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
