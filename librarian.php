@@ -567,7 +567,7 @@
             </p>');
     
         print('
-            <h2>Readers</h2>
+            <h2>Feed Readers</h2>
             <p>  
                 <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
                 <a href="https://netnewswire.com/">NetNewsWire (iOS/MacOS)</a>, 
@@ -653,11 +653,9 @@
             section:last-child{
                 padding-bottom: 40pt;
             }
-            h1, h2, h3, h4, ol, ul {
+            h1, h2, h3, h4 {
+                text-transform: capitalize;
                 margin: 5pt;
-            }
-            ol, ul {
-                padding: 0;
             }
             img {
                 width: 120pt;
@@ -668,6 +666,7 @@
                 pad: 3 "0";
             }
             ol, ul {
+                padding: 0;
                 text-align: left;
                 list-style-type: pad-3;
                 list-style-position: inside;
@@ -703,7 +702,7 @@
         <section>
             <img alt="" src="<?php print($g_icon); ?>">
             <h1>RSS-Librarian</h1>
-            <h3>"Knoweldge is power, <em>store</em> it well"</h3>
+            <h3>"Knoweldge is power, store it well"</h3>
             <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
         </section>
 <?php
@@ -717,7 +716,7 @@
         <section>
             <h2>You are about to create a new feed</h2>
             <p>
-                Please confirm that you bookmarked the two URLs in "Your feed" below before continuing!
+                Please confirm that you bookmarked the two URLs in "Your Feed" below before continuing!
             </p>
 
             <form action="' . $g_url_librarian . '">
