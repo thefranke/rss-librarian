@@ -151,6 +151,9 @@
                 <generator uri="' . $g_url_librarian . '" version="1.0">
                     RSS-Librarian
                 </generator>
+                <author>
+                    <name>RSS-Librarian</name>
+                </author>
                 <icon>' . $g_icon .'</icon>
                 <logo>' . $g_icon .'</logo>
             </feed>    
@@ -208,11 +211,9 @@
             <updated>' . date('Y-m-d\TH:i:s\Z', $date) . '</updated>
             <content type="html">'
                 . sanitize_text($content) .
-            '</content>
-            <author>
-                <name>' . ((!empty($author)) ? sanitize_text($author) : $url) . '</name>
-            </author>
-        </entry>';
+            '</content>'
+            . ((!empty($author)) ? '<author><name>' . sanitize_text($author) . '</name></author>' : '' ) .
+        '</entry>';
     }
 
     // Creates an RSS feed entry
