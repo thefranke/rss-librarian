@@ -33,7 +33,8 @@
     $g_url_base = dirname($g_url_librarian);
     
     // RSS-Librarian logo
-    $g_icon = 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg';
+    $g_logo = 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg';
+    $g_icon = $g_logo;
 
     // Read configuration from JSON file
     function update_configuration()
@@ -45,6 +46,8 @@
         global $g_use_rss_format;
         global $g_dir_feeds;
         global $g_instance_contact;
+        global $g_icon;
+        global $g_logo;
         
         $json = @file_get_contents($g_config_file);
 
@@ -57,6 +60,8 @@
                 'use_rss_format' => $g_use_rss_format,
                 'dir_feeds' => $g_dir_feeds,
                 'instance_contact' => $g_instance_contact,
+                'icon' => $g_icon,
+                'logo' => $g_logo,
             ], JSON_PRETTY_PRINT));
         }
 
@@ -65,11 +70,13 @@
         {
             $data = json_decode($json);
 
-            $g_extract_content = $data->extract_content;
-            $g_max_items = $data->max_items;
-            $g_use_rss_format = $data->use_rss_format;
-            $dir_feeds = $data->dir_feeds;
-            $instance_contact = $data->instance_contact;
+            if (property_exists($data, 'extract_content')) $g_extract_content = $data->extract_content;
+            if (property_exists($data, 'max_items')) $g_max_items = $data->max_items;
+            if (property_exists($data, 'use_rss_format')) $g_use_rss_format = $data->use_rss_format;
+            if (property_exists($data, 'dir_feeds')) $dir_feeds = $data->dir_feeds;
+            if (property_exists($data, 'instance_contact')) $instance_contact = $data->instance_contact;
+            if (property_exists($data, 'icon')) $g_icon = $data->icon;
+            if (property_exists($data, 'logo')) $g_logo = $data->logo;
         }
     }
 
@@ -699,7 +706,7 @@
     </head>
     <body>
         <section>
-            <a href="librarian.php"><img alt="" src="<?php print($g_icon); ?>"></a>
+            <a href="librarian.php"><img alt="" src="<?php print($g_logo); ?>"></a>
             <h1>RSS-Librarian</h1>
             <h3>"Knoweldge is power, store it well"</h3>
             <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
