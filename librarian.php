@@ -455,7 +455,6 @@
 
         if ($found)
         {
-            // write to rss file
             write_feed_file($param_id, $items);
             return '<a href="' . $param_url . '">' . $param_url . '</a> removed';
         }
@@ -466,21 +465,21 @@
     {
         global $g_max_items;
 
-        // turn parameter into fully qualified URL
+        // Turn parameter into fully qualified URL
         $parsed = parse_url($param_url);
         if (empty($parsed['scheme']))
             $param_url = 'https://' . ltrim($param_url, '/');
 
         $items = read_feed_file($param_id);
 
-        // check if item already exists
+        // Check if item already exists
         foreach($items as $item)
         {
             if ($item['url'] == $param_url)
                 return 'URL already added';
         }
 
-        // check max item count, remove anything beyond
+        // Check max item count, remove anything beyond
         $c = count($items);
         while ($c >= $g_max_items)
         {
@@ -488,7 +487,7 @@
             $c--;
         }
 
-        // fetch content and add to items
+        // Fetch content and add to items
         array_unshift($items, extract_content($param_url));
         
         write_feed_file($param_id, $items);
