@@ -683,8 +683,14 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
+            img[src$='.png'], img[src$='.jpg'] {              
+                border-radius: 10%;
+            }
             @media (prefers-color-scheme: dark) {
                 html {
+                    filter: invert(1) !important;
+                }
+                img[src$='.png'], img[src$='.jpg'] {
                     filter: invert(1) !important;
                 }
             }
