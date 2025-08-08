@@ -695,14 +695,19 @@
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
-            img[src$='.png'], img[src$='.jpg'] {              
+            img:not([src$='.svg']) {              
                 border-radius: 10%;
             }
             @media (prefers-color-scheme: dark) {
                 html {
-                    filter: invert(1) !important;
+                    background: #000;
+                    color: #a2c58a;
                 }
-                img[src$='.png'], img[src$='.jpg'] {
+                a {
+                    color: #a2c58a;
+                }
+                form, 
+                img[src$='.svg'] {
                     filter: invert(1) !important;
                 }
             }
