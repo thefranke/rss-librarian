@@ -604,7 +604,7 @@
             <h2>Your feed</h2>
             <p>
                 Bookmark your <a href="'. $personal_url .'">personal URL</a><br> 
-                Subscribe to your <a href="' . $feed_url . '">personal RSS/Atom feed</a> with a reader<br><br>
+                Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed reader<br><br>
                 <a href="' . $feed_url . '"><svg xmlns="http://www.w3.org/2000/svg" style="width: 1em" fill="currentColor" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"></path><path d="M5.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-3-8.5a1 1 0 0 1 1-1c5.523 0 10 4.477 10 10a1 1 0 1 1-2 0 8 8 0 0 0-8-8 1 1 0 0 1-1-1m0 4a1 1 0 0 1 1-1 6 6 0 0 1 6 6 1 1 0 1 1-2 0 4 4 0 0 0-4-4 1 1 0 0 1-1-1"></path></svg></a>
             </p>
 
@@ -619,11 +619,23 @@
         print('
             <h2>What Is This?</h2>
             <p>
-                <a href="https://github.com/thefranke/rss-librarian/wiki#how-to-use">Read the wiki!</a><br><br>
-                RSS-Librarian is a read-it-later service. You can store individual articles in your own personal RSS/Atom feed
-                and read them later with a feed reader app. Simpliy add a URL you want to save, store the personal URL and
-                subscribe to the personal feed that will be created for you. With the personal URL you can later add more
-                articles to read later.
+                <a href="https://github.com/thefranke/rss-librarian/wiki#how-to-use">Read the wiki!</a>
+            </p>
+                
+            <p>
+                RSS-Librarian is a read-it-later service for RSS purists. Instead of creating another service 
+                such as Pocket or Instapaper (together with a separate app), RSS-Librarian will let you add 
+                articles you want to read to a <em>personal RSS/Atom feed</em> and they will show up in your 
+                feed reader, where you can use the local functionality (for instance starring new articles) to 
+                mark them for later reading. RSS-Librarian uses no database and works without accounts.
+            </p>
+
+            <h2>Get Started</h2>
+            <p>
+                Simply add a URL you want to read later above. Bookmark your <em>personal URL</em> 
+                and subscribe to your <em>personal feed</em> with a reader app (see below). With the 
+                <em>personal URL</em> you can manage and add more articles to your feed for later 
+                reading.
             </p>
         ');
 
@@ -711,7 +723,7 @@
                 margin-top: 40pt;
                 border: 0px;
             }
-            section:last-child{
+            section:last-child {
                 padding-bottom: 40pt;
             }
             h1, h2, h3, h4 {
