@@ -257,7 +257,7 @@
         if (!empty($item['author']))
         {
             $email = (empty($item['email'])) ? $g_dummy_email : $item['email'];
-            $author_element = '<author>' . $email . '(' . $item['author'] . ')</author>';
+            $author_element = '<author>' . $email . ' (' . $item['author'] . ')</author>';
         }
 
         return '<item>
