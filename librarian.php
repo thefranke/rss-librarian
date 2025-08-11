@@ -407,24 +407,58 @@
     {
         $autoload = __DIR__ . '/vendor/autoload.php';
 
-        $html = '';
+        $item = [];
 
         if (file_exists($autoload))
         {
             require $autoload;
+
             // Pretend to be a browser to have an increased success rate of
             // downloading the contents compared to a simple `file_get_contents`.
-            // See https://stackoverflow.com/a/11680776.
+            ini_set('user_agent','Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
+
+            // Fetch HTML content
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch,CURLOPT_USERAGENT,'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
             $html = curl_exec($ch);
             curl_close($ch);
+
+            // Tidy up HTML
+            if (function_exists('tidy_parse_string'))
+            {
+                $tidy = tidy_parse_string($html, array(), 'UTF8');
+                $tidy->cleanRepair();
+                $html = $tidy->value;
+            }
+
+            $readability = new Readability(new Configuration([
+                'fixRelativeURLs' => true,
+                'originalURL' => $url,
+            ]));
+
+            try
+            {
+                $readability->parse($html);
+
+                $title = $readability->getTitle();
+                $content = $readability->getContent();
+                $author = $readability->getAuthor();
+                $item = [
+                    'url' => $url,
+                    'title' => $title,
+                    'content' => $content,
+                    'author' => $author,
+                ];
+            }
+            catch (ParseException $e)
+            {
+                // leave for second try at FiveFilters
+            }
         }
 
-        // No local Readability.php installed, use FiveFilters
-        if (empty($html))
+        // No local Readability.php installed or extracting data failed? Use FiveFilters
+        if (empty($item))
         {
             $feed_url = 'https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url);
 
@@ -446,43 +480,6 @@
                 'content' => $content,
                 'author' => $author,
             ]; 
-        }
-
-        if (function_exists('tidy_parse_string'))
-        {
-            $tidy = tidy_parse_string($html, array(), 'UTF8');
-            $tidy->cleanRepair();
-            $html = $tidy->value;
-        }
-
-        $readability = new Readability(new Configuration([
-            'fixRelativeURLs' => true,
-            'originalURL' => $url,
-        ]));
-
-        $item = [];
-        try
-        {
-            $readability->parse($html);
-
-            $title = $readability->getTitle();
-            $content = $readability->getContent();
-            $author = $readability->getAuthor();
-            $item = [
-                'url' => $url,
-                'title' => $title,
-                'content' => $content,
-                'author' => $author,
-            ];
-        }
-        catch (ParseException $e)
-        {
-            $item = [
-                'url' => $url,
-                'title' => $url,
-                'content' => 'Content extraction failed, please enable reader mode for this feed. ' . $e->getMessage(),
-                'author' => '',
-            ];
         }
 
         return $item;
