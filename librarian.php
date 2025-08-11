@@ -36,6 +36,9 @@
     $g_logo = 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg';
     $g_icon = $g_logo;
 
+    // Dummy email for RSS author entries
+    $g_dummy_email = 'no@email';
+
     // Read configuration from JSON file
     function update_configuration()
     {
@@ -48,6 +51,7 @@
         global $g_instance_contact;
         global $g_icon;
         global $g_logo;
+        global $g_dummy_email;
         
         $json = @file_get_contents($g_config_file);
 
@@ -62,6 +66,7 @@
                 'instance_contact' => $g_instance_contact,
                 'icon' => $g_icon,
                 'logo' => $g_logo,
+                'dummy_email' => $g_dummy_email,
             ], JSON_PRETTY_PRINT));
         }
 
@@ -77,6 +82,7 @@
             if (property_exists($data, 'instance_contact')) $instance_contact = $data->instance_contact;
             if (property_exists($data, 'icon')) $g_icon = $data->icon;
             if (property_exists($data, 'logo')) $g_logo = $data->logo;
+            if (property_exists($data, 'dummy_email')) $g_dummy_email = $data->dummy_email;
         }
     }
 
@@ -209,36 +215,60 @@
     }
 
     // Creates an Atom feed entry
-    function make_atom_item($url, $title, $author, $content, $date)  
+    // https://validator.w3.org/feed/docs/atom.html
+    function make_atom_item($item)
     {
+        $datef = date('Y-m-d\TH:i:s\Z', $item['date']);
+        
+        $author_element = '';
+
+        if (!empty($item['author']))
+        {
+            $email_element = '';
+            if (!empty($item['email']))
+                $email_element .= '<email>' . sanitize_text($item['email']) . '</email>';
+         
+            $author_element = '<author>
+                <name>' . sanitize_text($item['author']) . '</name>'
+                . $email_element . '</author>';
+        }
+        
         return '<entry>
-            <title>' . sanitize_text($title) . '</title>
-            <id>' . $url .'</id>
-            <published>' . date('Y-m-d\TH:i:s\Z', $date) . '</published>
-            <updated>' . date('Y-m-d\TH:i:s\Z', $date) . '</updated>
+            <title>' . sanitize_text($item['title']) . '</title>
+            <id>' . $item['url'] .'</id>
+            <published>' . $datef . '</published>
+            <updated>' . $datef . '</updated>
             <content type="html">'
-                . sanitize_text($content) .
+                . sanitize_text($item['content']) .
             '</content>'
-            . ((!empty($author)) ? '<author><name>' . sanitize_text($author) . '</name></author>' : '' ) .
+            . $author_element .
         '</entry>';
     }
 
     // Creates an RSS feed entry
-    function make_rss_item($url, $title, $author, $content, $date) 
+    // https://validator.w3.org/feed/docs/rss2.html
+    function make_rss_item($item) 
     {
+        global $g_dummy_email;
+
         // RSS requires a qualified email for a valid author name
-        if (empty($author) || !strpos($author, '@'))
-            $author = 'no@mail' . ((empty($author)) ? '' : '(' . $author . ')');
+        $author_element = '';
+
+        if (!empty($item['author']))
+        {
+            $email = (empty($item['email'])) ? $g_dummy_email : $item['email'];
+            $author_element = '<author>' . $email . '(' . $item['author'] . ')</author>';
+        }
 
         return '<item>
-            <link>' . $url . '</link>
-            <title>' . sanitize_text($title) . '</title>
-            <guid isPermaLink="true">' . $url .'</guid>
+            <link>' . $item['url'] . '</link>
+            <title>' . sanitize_text($item['title']) . '</title>
+            <guid isPermaLink="true">' . $item['url'] .'</guid>
             <description>'
-                . sanitize_text($content) .
+                . sanitize_text($item['content']) .
             '</description>'
-            . ((!empty($author)) ? ('<author>' . sanitize_text($author) . '</author>') : '') .
-            '<pubDate>' . date('D, d M Y H:i:s O', $date) . '</pubDate>
+            . $author_element .
+            '<pubDate>' . date('D, d M Y H:i:s O', $item['date']) . '</pubDate>
         </item>';
     }
 
@@ -261,9 +291,9 @@
 
         $item_xml_str = '';
         if ($g_use_rss_format)
-            $item_xml_str = make_rss_item($item['url'], $item['title'], $item['author'], $item['content'], $item['date']);
+            $item_xml_str = make_rss_item($item);
         else
-            $item_xml_str = make_atom_item($item['url'], $item['title'], $item['author'], $item['content'], $item['date']);
+            $item_xml_str = make_atom_item($item);
 
         return simplexml_load_string($item_xml_str);
     }
@@ -271,12 +301,27 @@
     // Read RSS XML item and convert to internal item format
     function read_rss_item($xml_item)
     {
+        global $g_dummy_email;
+
+        $author_full = sanitize_text($xml_item->author);
+
+        // Extract author name and mail
+        $author = '';
+        $email = $g_dummy_email;
+        $pattern = '/(.*@.*) \((.*)\)/i';
+        if (preg_match($pattern, $author_full, $matches))
+        {
+            $email = $matches[1];
+            $author = $matches[2];
+        }
+
         return [
             'url' => $xml_item->guid,
             'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->description,
             'date' => strtotime($xml_item->pubDate),
-            'author' => sanitize_text($xml_item->author),
+            'author' => $author,
+            'email' => $email,
         ];
     }
 
@@ -289,6 +334,7 @@
             'content' => $xml_item->content,
             'date' => strtotime($xml_item->published),
             'author' => sanitize_text($xml_item->author->name),
+            'email' => sanitize_text($xml_item->author->email), 
         ];
     }
 
