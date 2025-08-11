@@ -103,6 +103,9 @@
     // Sanitize a string to remove any invalid characters
     function sanitize_text($s)
     {
+        if (empty($s))
+            return '';
+
         $s = trim($s);
 
         // Remove control characters
@@ -155,15 +158,11 @@
 
         return '<?xml version="1.0" encoding="utf-8"?>
             <feed xmlns="http://www.w3.org/2005/Atom">
-                
                 <link rel="self" href="' .$feed_url . '" />
                 <title>' . $title . '</title>
                 <id>' . $personal_url . '</id>
-                
                 <updated>' . date('Y-m-d\TH:i:s\Z', $ts_updated) . '</updated>
-                <generator uri="' . $g_url_librarian . '" version="1.0">
-                    RSS-Librarian
-                </generator>
+                <generator uri="' . $g_url_librarian . '" version="1.0">RSS-Librarian</generator>
                 <author>
                     <name>RSS-Librarian</name>
                 </author>
@@ -218,6 +217,8 @@
     // https://validator.w3.org/feed/docs/atom.html
     function make_atom_item($item)
     {
+        global $g_dummy_email;
+
         $datef = date('Y-m-d\TH:i:s\Z', $item['date']);
         
         $author_element = '';
@@ -225,7 +226,7 @@
         if (!empty($item['author']))
         {
             $email_element = '';
-            if (!empty($item['email']))
+            if (!empty($item['email']) && $item['email'] !== $g_dummy_email)
                 $email_element .= '<email>' . sanitize_text($item['email']) . '</email>';
          
             $author_element = '<author>
