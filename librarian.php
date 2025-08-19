@@ -410,6 +410,10 @@
 
         $item = [];
 
+        $title = '';
+        $content = '';
+        $author = '';
+
         if (file_exists($autoload))
         {
             require $autoload;
@@ -445,12 +449,6 @@
                 $title = $readability->getTitle();
                 $content = $readability->getContent();
                 $author = $readability->getAuthor();
-                $item = [
-                    'url' => $url,
-                    'title' => $title,
-                    'content' => $content,
-                    'author' => $author,
-                ];
             }
             catch (ParseException $e)
             {
@@ -474,14 +472,14 @@
             $title = $ff_item->title;
             $content = $ff_item->description;
             $author = '';
-
-            return [
-                'url' => $url,
-                'title' => $title,
-                'content' => $content,
-                'author' => $author,
-            ]; 
         }
+
+        $item = [
+            'url' => $url,
+            'title' => $title,
+            'content' => $content,
+            'author' => $author,
+        ]; 
 
         return $item;
     }
