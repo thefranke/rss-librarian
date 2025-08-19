@@ -261,15 +261,19 @@
             $author_element = '<author>' . $email . ' (' . $item['author'] . ')</author>';
         }
 
+        $title_element = '';
+        if (!empty($item['title']))
+        {
+            $title_element = '<title>' . sanitize_text($item['title']) . '</title>';
+        }
+
         return '<item>
             <link>' . $item['url'] . '</link>
-            <title>' . sanitize_text($item['title']) . '</title>
+            ' . $title_element . '
             <guid isPermaLink="true">' . $item['url'] .'</guid>
-            <description>'
-                . sanitize_text($item['content']) .
-            '</description>'
-            . $author_element .
-            '<pubDate>' . date('D, d M Y H:i:s O', $item['date']) . '</pubDate>
+            <description>' . sanitize_text($item['content']) . '</description>
+            ' . $author_element . '
+            <pubDate>' . date('D, d M Y H:i:s O', $item['date']) . '</pubDate>
         </item>';
     }
 
@@ -281,9 +285,6 @@
 
         if (!array_key_exists('date', $item) || $item['date'] == 0)
             $item['date'] = time();
-
-        if (!array_key_exists('title', $item) || empty($item['title']))
-            $item['title'] = $item['url'];
 
         if (!$g_extract_content)
             $item['content'] = 'Content extraction disabled or failed, please enable reader mode for this entry.';
