@@ -384,10 +384,6 @@
 
         $item = [];
 
-        $title = '';
-        $content = '';
-        $author = '';
-
         if (file_exists($autoload))
         {
             require $autoload;
@@ -420,9 +416,12 @@
             {
                 $readability->parse($html);
 
-                $title = $readability->getTitle();
-                $content = $readability->getContent();
-                $author = $readability->getAuthor();
+                $item = [
+                    'url' => $url,
+                    'title' => $readability->getTitle(),
+                    'content' => $readability->getContent(),
+                    'author' => $readability->getAuthor(),
+                ];
             }
             catch (ParseException $e)
             {
@@ -443,17 +442,15 @@
             $xml = simplexml_load_string($feed_item);
             $ff_item = $xml->channel->item[0];
 
-            $title = $ff_item->title;
-            $content = $ff_item->description;
-            $author = '';
+            $item = [
+                'url' => $url,
+                'title' => $ff_item->title,
+                'content' => $ff_item->description,
+                'author' => '',
+            ];
         }
 
-        $item = [
-            'url' => $url,
-            'title' => $title,
-            'content' => $content,
-            'author' => $author,
-        ]; 
+        
 
         return $item;
     }
