@@ -36,6 +36,10 @@
     $g_logo = 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg';
     $g_icon = $g_logo;
 
+    // Custom CSS & XSLT Stylesheets
+    $g_custom_xslt = '';
+    $g_custom_css = '';
+
     // Dummy email for RSS author entries
     $g_dummy_email = 'no@email';
 
@@ -60,6 +64,8 @@
                 'icon' => $g_icon,
                 'logo' => $g_logo,
                 'dummy_email' => $g_dummy_email,
+                'custom_xslt' => $g_custom_xslt,
+                'custom_css' => $g_custom_css,
             ], JSON_PRETTY_PRINT));
         }
 
@@ -76,6 +82,8 @@
             if (property_exists($data, 'icon')) $g_icon = $data->icon;
             if (property_exists($data, 'logo')) $g_logo = $data->logo;
             if (property_exists($data, 'dummy_email')) $g_dummy_email = $data->dummy_email;
+            if (property_exists($data, 'custom_xslt')) $g_custom_xslt = $data->custom_xslt;
+            if (property_exists($data, 'custom_css')) $g_custom_css = $data->custom_css;
         }
     }
 
@@ -149,6 +157,7 @@
         global $g_url_librarian, $g_icon, $g_custom_xslt;
 
         return '<?xml version="1.0" encoding="utf-8"?>
+            ' . (($g_custom_xslt !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_custom_xslt . '" ?>' : '') . '
             <feed xmlns="http://www.w3.org/2005/Atom">
                 <link rel="self" href="' .$feed_url . '" />
                 <title>' . $title . '</title>
@@ -170,6 +179,7 @@
         global $g_url_librarian, $g_icon, $g_custom_xslt;
 
         return '<?xml version="1.0" encoding="utf-8"?>
+            ' . (($g_custom_xslt !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_custom_xslt . '"?>' : '') . '
             <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
                 <channel>
                     <title>' . $title . '</title>
@@ -558,7 +568,7 @@
 
         print('
         <section>
-            <h2>Feed Items</h2>
+            <h2>Stored Feed Items</h2>
             <ol>');
 
         foreach($items as $item)
@@ -595,7 +605,7 @@
 
             <h2>Your tools</h2>
             <p>
-                <a href="https://feedreader.xyz/?url=' . urlencode($feed_url) . '">Feed preview</a>, 
+                <a href="' . ($g_custom_xslt === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
                 <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>, 
                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
                 <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">iOS Shortcut</a>
@@ -665,6 +675,7 @@
             print('<link rel="alternate" type="application/' . (($g_use_rss_format) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
         ?>
 
+        <?php if ($g_custom_css === '') { ?>
         <style>
             html {
                 font-family: monospace;
@@ -766,6 +777,9 @@
                 }
             }
         </style>
+        <?php } else { ?>
+        <link rel="stylesheet" type="text/css" href="<?php print($g_custom_css); ?>">
+        <?php } ?>
     </head>
     <body>
         <section>
