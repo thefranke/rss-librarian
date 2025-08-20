@@ -42,16 +42,9 @@
     // Read configuration from JSON file
     function update_configuration()
     {
-        global $g_config_file;
-
-        global $g_extract_content;
-        global $g_max_items;
-        global $g_use_rss_format;
-        global $g_dir_feeds;
-        global $g_instance_contact;
-        global $g_icon;
-        global $g_logo;
-        global $g_dummy_email;
+        global $g_config_file, $g_extract_content, $g_max_items, $g_use_rss_format, 
+               $g_dir_feeds, $g_instance_contact, $g_icon, $g_logo, $g_dummy_email, 
+               $g_custom_xslt, $g_custom_css;
         
         $json = @file_get_contents($g_config_file);
 
@@ -153,8 +146,7 @@
     // Creates the base stub for an Atom feed
     function make_atom_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
-        global $g_url_librarian;
-        global $g_icon;
+        global $g_url_librarian, $g_icon, $g_custom_xslt;
 
         return '<?xml version="1.0" encoding="utf-8"?>
             <feed xmlns="http://www.w3.org/2005/Atom">
@@ -175,8 +167,7 @@
     // Creates the base stub for an RSS feed
     function make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
-        global $g_url_librarian;
-        global $g_icon;
+        global $g_url_librarian, $g_icon, $g_custom_xslt;
 
         return '<?xml version="1.0" encoding="utf-8"?>
             <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -194,8 +185,7 @@
     // Creates an XML element for a feed stub for the configured format (RSS or Atom)
     function make_feed($param_id)
     {
-        global $g_use_rss_format;
-        global $g_url_librarian;
+        global $g_use_rss_format, $g_url_librarian;
 
         $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
         $subtitle = 'A read-it-later service for RSS purists';
@@ -280,8 +270,7 @@
     // Create XML element for an RSS item
     function make_feed_item($item)
     {
-        global $g_extract_content;
-        global $g_use_rss_format;
+        global $g_extract_content, $g_use_rss_format;
 
         if (!array_key_exists('date', $item) || $item['date'] == 0)
             $item['date'] = time();
@@ -382,8 +371,7 @@
     // Write XML data to feed file
     function write_feed_file($param_id, $items)
     {
-        global $g_dir_feeds;
-        global $g_use_rss_format;
+        global $g_dir_feeds, $g_use_rss_format;
 
         // Check for subs dir
         if (!is_dir($g_dir_feeds))
@@ -588,10 +576,7 @@
     // Print message with tools for RSS feed management and instance information
     function show_footer($param_id)
     {
-        global $g_use_rss_format;
-        global $g_extract_content;
-        global $g_max_items;
-        global $g_instance_contact;
+        global $g_use_rss_format, $g_extract_content, $g_max_items, $g_instance_contact, $g_custom_xslt;
 
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
