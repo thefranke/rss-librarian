@@ -724,7 +724,8 @@
             }
             h1, h2, h3, h4 {
                 text-transform: capitalize;
-                margin: 5pt;
+                margin-top: 5pt;
+                margin-bottom: 5pt;
             }
             img {
                 width: 120pt;
