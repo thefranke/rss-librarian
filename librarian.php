@@ -40,14 +40,11 @@
     $g_custom_xslt = '';
     $g_custom_css = '';
 
-    // Dummy email for RSS author entries
-    $g_dummy_email = 'no@email';
-
     // Read configuration from JSON file
     function update_configuration()
     {
         global $g_config_file, $g_extract_content, $g_max_items, $g_use_rss_format, 
-               $g_dir_feeds, $g_instance_contact, $g_icon, $g_logo, $g_dummy_email, 
+               $g_dir_feeds, $g_instance_contact, $g_icon, $g_logo, 
                $g_custom_xslt, $g_custom_css;
         
         $json = @file_get_contents($g_config_file);
@@ -63,7 +60,6 @@
                 'instance_contact' => $g_instance_contact,
                 'icon' => $g_icon,
                 'logo' => $g_logo,
-                'dummy_email' => $g_dummy_email,
                 'custom_xslt' => $g_custom_xslt,
                 'custom_css' => $g_custom_css,
             ], JSON_PRETTY_PRINT));
@@ -81,7 +77,6 @@
             if (property_exists($data, 'instance_contact')) $instance_contact = $data->instance_contact;
             if (property_exists($data, 'icon')) $g_icon = $data->icon;
             if (property_exists($data, 'logo')) $g_logo = $data->logo;
-            if (property_exists($data, 'dummy_email')) $g_dummy_email = $data->dummy_email;
             if (property_exists($data, 'custom_xslt')) $g_custom_xslt = $data->custom_xslt;
             if (property_exists($data, 'custom_css')) $g_custom_css = $data->custom_css;
         }
@@ -180,7 +175,7 @@
 
         return '<?xml version="1.0" encoding="utf-8"?>
             ' . (($g_custom_xslt !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_custom_xslt . '"?>' : '') . '
-            <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+            <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
                 <channel>
                     <title>' . $title . '</title>
                     <description>' . $subtitle . '</description>
@@ -217,22 +212,12 @@
     // https://validator.w3.org/feed/docs/atom.html
     function make_atom_item($item)
     {
-        global $g_dummy_email;
-
         $datef = date('Y-m-d\TH:i:s\Z', $item['date']);
         
         $author_element = '';
 
         if (!empty($item['author']))
-        {
-            $email_element = '';
-            if (!empty($item['email']) && $item['email'] !== $g_dummy_email)
-                $email_element .= '<email>' . sanitize_text($item['email']) . '</email>';
-         
-            $author_element = '<author>
-                <name>' . sanitize_text($item['author']) . '</name>'
-                . $email_element . '</author>';
-        }
+            $author_element = '<author><name>' . sanitize_text($item['author']) . '</name></author>';
         
         return '<entry>
             <title>' . sanitize_text($item['title']) . '</title>
@@ -250,16 +235,10 @@
     // https://validator.w3.org/feed/docs/rss2.html
     function make_rss_item($item) 
     {
-        global $g_dummy_email;
-
-        // RSS requires a qualified email for a valid author name
         $author_element = '';
 
         if (!empty($item['author']))
-        {
-            $email = (empty($item['email'])) ? $g_dummy_email : $item['email'];
-            $author_element = '<author>' . $email . ' (' . $item['author'] . ')</author>';
-        }
+            $author_element = '<dc:creator>' . $item['author'] . '</dc:creator>';
 
         $title_element = '';
         if (!empty($item['title']))
@@ -267,7 +246,7 @@
             $title_element = '<title>' . sanitize_text($item['title']) . '</title>';
         }
 
-        return '<item>
+        return '<item xmlns:dc="http://purl.org/dc/elements/1.1/">
             <link>' . $item['url'] . '</link>
             ' . $title_element . '
             <guid isPermaLink="true">' . $item['url'] .'</guid>
@@ -302,18 +281,15 @@
     // Read RSS XML item and convert to internal item format
     function read_rss_item($xml_item)
     {
-        global $g_dummy_email;
-
-        $author_full = sanitize_text($xml_item->author);
-
-        // Extract author name and mail
         $author = '';
-        $email = $g_dummy_email;
-        $pattern = '/(.*@.*) \((.*)\)/i';
-        if (preg_match($pattern, $author_full, $matches))
+        
+        $creator = $xml_item->xpath('dc:creator');
+        
+        if (empty($creator))
+            sanitize_text($xml_item->author);
+        else
         {
-            $email = $matches[1];
-            $author = $matches[2];
+            $author = $creator[0][0];
         }
 
         return [
@@ -322,7 +298,6 @@
             'content' => $xml_item->description,
             'date' => strtotime($xml_item->pubDate),
             'author' => $author,
-            'email' => $email,
         ];
     }
 
@@ -335,7 +310,6 @@
             'content' => $xml_item->content,
             'date' => strtotime($xml_item->published),
             'author' => sanitize_text($xml_item->author->name),
-            'email' => sanitize_text($xml_item->author->email), 
         ];
     }
 
@@ -360,6 +334,7 @@
             // read into array of internal items
             if ($is_rss)
             {
+                $old_feed_xml->registerXPATHNamespace('dc', 'http://purl.org/dc/elements/1.1/');
                 foreach ($old_feed_xml->channel->item as $xml_item)
                     $items_sorted[] = read_rss_item($xml_item);
             }
