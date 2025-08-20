@@ -2,3 +2,7 @@ composer.*
 vendor/
 feeds/
 subscriptions/
+htaccess
+rsslibrarian-config.json
+_stuff
+style
