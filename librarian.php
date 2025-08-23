@@ -194,7 +194,7 @@
 
         $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
         $subtitle = 'A read-it-later service for RSS purists';
-        $personal_url = $g_url_librarian . '?id=' . $param_id;
+        $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
         $ts_updated = time();
 
@@ -572,10 +572,10 @@
             <h2>Your feed</h2>
             <p>
                 Bookmark your <a href="'. $personal_url .'">personal URL</a><br> 
-                Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed reader<br><br>
+                Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed reader
             </p>
 
-            <h2>Your tools</h2>
+            <h2>Tools</h2>
             <p>
                 <a href="' . ($g_custom_xslt === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
                 <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>, 
@@ -658,7 +658,7 @@
             html {
                 font-family: monospace;
                 font-size: 14pt;
-                color: #000;
+                color: #111;
                 background-color: #eee;
                 text-align: center;
             }
@@ -723,8 +723,8 @@
             }
             @media (prefers-color-scheme: dark) {
                 html {
-                    background: #000;
-                    color: #ccc;
+                    background: #111;
+                    color: #eee;
                 }
                 h1, h2, a {
                     color: #f93;
@@ -757,7 +757,13 @@
             <a href="librarian.php"><img alt="" src="<?php print($g_logo); ?>"></a>
             <h1>RSS-Librarian<?php if (!empty($param_id)) print(' (' . substr($param_id, 0, 4) . ')'); ?></h1>
             <h3>"Knoweldge is power, store it well"</h3>
-            <h3>[<a href="https://github.com/thefranke/rss-librarian">Github</a>]</h3>
+            <h3>
+                [<a href="https://github.com/thefranke/rss-librarian">Github</a>] 
+                <?php if (!empty($param_id)) { ?>
+                    [<a href="<?php print(get_personal_url($param_id)); ?>">Manage</a>] 
+                    [<a href="<?php print(get_feed_url($param_id)); ?>">Subscribe</a>]
+                <?php } ?>
+            </h3>
         </section>
 <?php
     // Adding URL for the first time, make sure user has saved their personal URLs!
