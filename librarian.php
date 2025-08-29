@@ -580,7 +580,7 @@
                 <a href="' . ($g_custom_xslt === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
                 <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>, 
                 <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-                <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">iOS Shortcut</a>
+                <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple Shortcut</a>
             </p>');
         else
         print('
@@ -750,7 +750,7 @@
         <section>
             <a href="librarian.php"><img alt="" src="<?php print($g_logo); ?>"></a>
             <h1>RSS-Librarian<?php if (!empty($param_id)) print(' (' . substr($param_id, 0, 4) . ')'); ?></h1>
-            <h3>"Knoweldge is power, store it well"</h3>
+            <h3>"Knoweldge is power, store it well."</h3>
             <h3>
                 [<a href="https://github.com/thefranke/rss-librarian">Github</a>] 
                 <?php if (!empty($param_id)) { ?>
