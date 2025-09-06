@@ -40,6 +40,11 @@
     $g_custom_xslt = '';
     $g_custom_css = '';
 
+    function make_id()
+    {
+        return hash('sha256', random_bytes(18));
+    }
+
     // Read configuration from JSON file
     function update_configuration()
     {
@@ -764,7 +769,7 @@
     if (empty($param_id) && !empty($param_url))
     {
         // Create new user id
-        $param_id = hash('sha256', random_bytes(18));
+        $param_id = make_id();
 
         print('
         <section>
