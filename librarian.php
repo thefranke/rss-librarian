@@ -40,6 +40,9 @@
     $g_custom_xslt = '';
     $g_custom_css = '';
 
+    // Admin ID to attach instance messages to all feeds
+    $g_admin_id = '';
+
     function make_id()
     {
         return hash('sha256', random_bytes(18));
@@ -50,7 +53,7 @@
     {
         global $g_config_file, $g_extract_content, $g_max_items, $g_use_rss_format, 
                $g_dir_feeds, $g_instance_contact, $g_icon, $g_logo, 
-               $g_custom_xslt, $g_custom_css;
+               $g_custom_xslt, $g_custom_css, $g_admin_id;
         
         $json = @file_get_contents($g_config_file);
 
@@ -67,6 +70,7 @@
                 'logo' => $g_logo,
                 'custom_xslt' => $g_custom_xslt,
                 'custom_css' => $g_custom_css,
+                'admin_id' => make_id(),
             ], JSON_PRETTY_PRINT));
         }
 
@@ -84,6 +88,7 @@
             if (property_exists($data, 'logo')) $g_logo = $data->logo;
             if (property_exists($data, 'custom_xslt')) $g_custom_xslt = $data->custom_xslt;
             if (property_exists($data, 'custom_css')) $g_custom_css = $data->custom_css;
+            if (property_exists($data, 'admin_id')) $g_admin_id = $data->admin_id;
         }
     }
 
@@ -456,8 +461,6 @@
             ];
         }
 
-        
-
         return $item;
     }
 
@@ -486,24 +489,10 @@
         }
     }
 
-    // Add URL to personal feed
-    function add_url($param_id, $param_url)
+    // Add item to array of items from a feed
+    function add_item($items, $item)
     {
         global $g_max_items;
-
-        // Turn parameter into fully qualified URL
-        $parsed = parse_url($param_url);
-        if (empty($parsed['scheme']))
-            $param_url = 'https://' . ltrim($param_url, '/');
-
-        $items = read_feed_file($param_id);
-
-        // Check if item already exists
-        foreach($items as $item)
-        {
-            if ($item['url'] == $param_url)
-                return 'URL already added';
-        }
 
         // Check max item count, remove anything beyond
         $c = count($items);
@@ -514,10 +503,46 @@
         }
 
         // Fetch content and add to items
-        array_unshift($items, extract_content($param_url));
+        array_unshift($items, $item);
+        return $items;
+    }
+
+    // Add URL to personal feed
+    function add_url($param_id, $param_url)
+    {
+        $items = read_feed_file($param_id);
+
+        // Turn parameter into fully qualified URL
+        $parsed = parse_url($param_url);
+        if (empty($parsed['scheme']))
+            $param_url = 'https://' . ltrim($param_url, '/');
+
+        // Check if item already exists
+        foreach($items as $item)
+        {
+            if ($item['url'] == $param_url)
+                return 'URL already added';
+        }
+
+        $items = add_item($items, extract_content($param_url));
         
         write_feed_file($param_id, $items);
         return '<a href="' . $param_url . '">' . $param_url . '</a> added';
+    }
+
+    // Add URL to personal feed
+    function add_custom_item($param_id, $message)
+    {
+        global $g_url_librarian;
+        $items = read_feed_file($param_id);
+        $item = [
+            'url' => '',
+            'title' => 'RSS-Librarian instance notice',
+            'content' => $message,
+            'author' => '',
+        ];
+        $items = add_item($items, $item);
+        write_feed_file($param_id, $items);
     }
 
     // Count number of feeds in feed directory
@@ -661,13 +686,13 @@
                 background-color: #eee;
                 text-align: center;
             }
-            input {
+            textarea, input {
                 display: block;
                 margin: auto;
                 font-size: 1.6em;
                 margin-bottom: 0.8em;
             }
-            input:first-child {
+            textarea, input:first-child {
                 width: 70%;
                 border: 1px solid gray;
             }
@@ -787,6 +812,34 @@
         ');
     }
 
+    // Admin interface
+    else if ($param_id === $g_admin_id)
+    {
+        if (empty($param_url))
+        {
+            print('
+            <section>
+                <h2>Send a message to all feeds</h2>
+                <form action="' . $g_url_librarian . '">
+                    <textarea type="text" id="url" name="url" rows="4"></textarea>
+                    <input type="hidden" id="id" name="id" value="' . $param_id . '">
+                    <input type="submit" value="Add to all feeds">
+                </form>');
+        }
+        else
+        {
+            // iterate over all feeds
+            $feeds = glob($g_dir_feeds . '/*.xml');
+            foreach($feeds as $f)
+            {
+                $feed_id = basename($f, '.xml');
+                add_custom_item($feed_id, $param_url);
+            }
+
+            print('<h2>Message sent to ' . count_feeds() . ' feeds.</h2>');
+        }
+    }
+
     // Returning user view
     else
     {
@@ -819,7 +872,8 @@
         show_saved_urls($param_id);
     }
     
-    show_footer($param_id);
+    if ($param_id !== $g_admin_id)
+        show_footer($param_id);
 ?>
 
     </body>
