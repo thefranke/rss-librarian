@@ -813,7 +813,7 @@
     }
 
     // Admin interface
-    else if ($param_id === $g_admin_id)
+    else if (!empty($param_id) && $param_id === $g_admin_id)
     {
         if (empty($param_url))
         {
