@@ -537,7 +537,7 @@
         $items = read_feed_file($param_id);
         $item = [
             'url' => '',
-            'title' => 'RSS-Librarian instance notice',
+            'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d"),
             'content' => $message,
             'author' => '',
         ];
@@ -779,7 +779,7 @@
     <body>
         <section>
             <a href="librarian.php"><img alt="" src="<?php print($g_logo); ?>"></a>
-            <h1>RSS-Librarian<?php if (!empty($param_id)) print(' (' . substr($param_id, 0, 4) . ')'); ?></h1>
+            <h1>RSS-Librarian<?php if (!empty($param_id)) { $feed_name = ($param_id === $g_admin_id) ? 'admin' : substr($param_id, 0, 4); print(' (' . $feed_name . ')'); } ?></h1>
             <h3>"Knoweldge is power, store it well."</h3>
             <h3>
                 [<a href="https://github.com/thefranke/rss-librarian">Github</a>] 
