@@ -620,11 +620,9 @@
             </p>
                 
             <p>
-                RSS-Librarian is a read-it-later service for RSS purists. Instead of creating another service 
-                such as Pocket or Instapaper (together with a separate app), RSS-Librarian will let you add 
-                articles you want to read to a <em>personal RSS/Atom feed</em> and they will show up in your 
-                feed reader, where you can use the local functionality (for instance starring new articles) to 
-                mark them for later reading. RSS-Librarian uses no database and works without accounts.
+                RSS-Librarian is a read-it-later service for RSS purists. You can store articles from the 
+                web in your own <em>personal RSS/Atom feed</em> and use your favorite feed-reader software 
+                to read your stored articles later. RSS-Librarian uses no database and works without accounts.
             </p>
 
             <h2>Get Started</h2>
@@ -641,7 +639,6 @@
             <p>  
                 <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
                 <a href="https://netnewswire.com/">NetNewsWire (iOS/MacOS)</a>, 
-                <br>
                 <a href="https://www.feedflow.dev/">FeedFlow (Windows/Linux)</a>,
                 <a href="https://nodetics.com/feedbro/">FeedBro (Firefox/Chrome/Brave)</a>
             </p>
