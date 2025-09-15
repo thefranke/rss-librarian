@@ -11,7 +11,7 @@ The project was born out of [a personal frustration of mine](https://github.com/
 RSS-Librarian solves this issue with a self-hostable PHP file by extracting content from articles using [a readability service](https://www.fivefilters.org/) and directly writing them as new entries into a *personal feed*, without requiring special libraries, a database or user accounts.
 
 Consider RSS-Librarian if you want to:
-* Store a collection of articles in a feed reader application
+* Store a collection of articles in a feed-reader application
 * Avoid third-party read-it-later services such as [Wallabag](https://wallabag.org/), [Instapaper](https://www.instapaper.com), [Pocket](https://getpocket.com) etc.
 * Minimize the amount of necessary apps for reading articles
 * Get rid of accounts and not sign up to anything

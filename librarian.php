@@ -602,7 +602,7 @@
             <h2>Your feed</h2>
             <p>
                 Bookmark your <a href="'. $personal_url .'">personal URL</a><br> 
-                Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed reader
+                Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed-reader
             </p>
 
             <h2>Tools</h2>
@@ -635,7 +635,7 @@
         ');
 
         print('
-            <h2>Feed Readers</h2>
+            <h2>Feed-Readers</h2>
             <p>  
                 <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
                 <a href="https://netnewswire.com/">NetNewsWire (iOS/MacOS)</a>, 
