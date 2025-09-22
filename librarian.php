@@ -57,25 +57,8 @@
         
         $json = @file_get_contents($g_config_file);
 
-        // No config file found, create one
-        if (empty($json))
-        {
-            file_put_contents($g_config_file, json_encode([
-                'extract_content' => $g_extract_content,
-                'max_items' => $g_max_items,
-                'use_rss_format' => $g_use_rss_format,
-                'dir_feeds' => $g_dir_feeds,
-                'instance_contact' => $g_instance_contact,
-                'icon' => $g_icon,
-                'logo' => $g_logo,
-                'custom_xslt' => $g_custom_xslt,
-                'custom_css' => $g_custom_css,
-                'admin_id' => make_id(),
-            ], JSON_PRETTY_PRINT));
-        }
-
-        // Read back configuration
-        else
+        // Read back already set variables
+        if (!empty($json))
         {
             $data = json_decode($json);
 
@@ -90,6 +73,22 @@
             if (property_exists($data, 'custom_css')) $g_custom_css = $data->custom_css;
             if (property_exists($data, 'admin_id')) $g_admin_id = $data->admin_id;
         }
+
+        if (empty($g_admin_id))
+            $g_admin_id = make_id();
+
+        file_put_contents($g_config_file, json_encode([
+            'extract_content' => $g_extract_content,
+            'max_items' => $g_max_items,
+            'use_rss_format' => $g_use_rss_format,
+            'dir_feeds' => $g_dir_feeds,
+            'instance_contact' => $g_instance_contact,
+            'icon' => $g_icon,
+            'logo' => $g_logo,
+            'custom_xslt' => $g_custom_xslt,
+            'custom_css' => $g_custom_css,
+            'admin_id' => $g_admin_id,
+        ], JSON_PRETTY_PRINT));
     }
 
     // Fetch parameters given to librarian
