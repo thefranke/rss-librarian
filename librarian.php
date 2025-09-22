@@ -821,7 +821,8 @@
                     <textarea type="text" id="url" name="url" rows="4"></textarea>
                     <input type="hidden" id="id" name="id" value="' . $param_id . '">
                     <input type="submit" value="Add to all feeds">
-                </form>');
+                </form>
+            </section>
         }
         else
         {
