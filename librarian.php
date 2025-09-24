@@ -43,6 +43,10 @@
     // Admin ID to attach instance messages to all feeds
     $g_admin_id = '';
 
+    // Time before feeds are considered abandoned
+    $g_delete_abandoned_after = 31536000; // 1 year -> 60*60*24*365
+    $g_delete_bogus_after = 7776000; // 3 months -> 60*60*24*30*3
+
     function make_id()
     {
         return hash('sha256', random_bytes(18));
@@ -53,7 +57,8 @@
     {
         global $g_config_file, $g_extract_content, $g_max_items, $g_use_rss_format, 
                $g_dir_feeds, $g_instance_contact, $g_icon, $g_logo, 
-               $g_custom_xslt, $g_custom_css, $g_admin_id;
+               $g_custom_xslt, $g_custom_css, $g_admin_id,
+               $g_delete_abandoned_after, $g_delete_bogus_after;
         
         $json = @file_get_contents($g_config_file);
 
@@ -72,6 +77,8 @@
             if (property_exists($data, 'custom_xslt')) $g_custom_xslt = $data->custom_xslt;
             if (property_exists($data, 'custom_css')) $g_custom_css = $data->custom_css;
             if (property_exists($data, 'admin_id')) $g_admin_id = $data->admin_id;
+            if (property_exists($data, 'delete_abandoned_after')) $g_delete_abandoned_after = $data->delete_abandoned_after;
+            if (property_exists($data, 'delete_bogus_after')) $g_delete_bogus_after = $data->delete_bogus_after;
         }
 
         if (empty($g_admin_id))
@@ -88,6 +95,8 @@
             'custom_xslt' => $g_custom_xslt,
             'custom_css' => $g_custom_css,
             'admin_id' => $g_admin_id,
+            'delete_abandoned_after' => $g_delete_abandoned_after,
+            'delete_bogus_after' => $g_delete_bogus_after,
         ], JSON_PRETTY_PRINT));
     }
 
