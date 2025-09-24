@@ -665,6 +665,49 @@
         </section>');
     }
 
+    // Go through feeds directory and clean up likely abandoned feed files
+    function run_maintenance($is_dry_run)
+    {
+        global $g_dir_feeds;
+        global $g_delete_abandoned_after;
+        global $g_delete_bogus_after;
+
+        $num_removed = 0;
+
+        $dir = new DirectoryIterator($g_dir_feeds);
+        $current_time = time();
+        
+        foreach ($dir as $fileinfo) 
+        {
+            if ($fileinfo->isDot() || $fileinfo->getExtension() != "xml") 
+                continue;
+            
+            $age = $current_time - $fileinfo->getMTime();
+            $feed_id = $fileinfo->getBasename();
+            $feed_file = $fileinfo->getPathname();
+
+            // Delete abandoned files older than $g_delete_abandoned_after
+            if ($age > $g_delete_abandoned_after)
+            {
+                if (!$is_dry_run) unlink($feed_file);
+                $num_removed++;
+            }
+
+            // These are likely files created by accident (max one entry)
+            else if ($age > $g_delete_bogus_after)
+            {
+                $items = read_feed_file($feed_id);
+                if (count($items) <= 1)
+                {
+                    if (!$is_dry_run) unlink($feed_file);
+                    $num_removed++;
+                }
+            }
+        }
+
+        return $num_removed;
+    }
+
     update_configuration();
 
     $param_url = fetch_param('url');
