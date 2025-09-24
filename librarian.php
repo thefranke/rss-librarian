@@ -905,7 +905,7 @@
                 add_custom_item($feed_id, $param_url);
             }
 
-            print('<section><h2>Message sent to ' . count_feeds() . ' feeds.</h2></section>');
+            print('<section><h2>Message sent to ' . count($feeds) . ' feeds.</h2></section>');
         }
         else if (!empty($param_delete))
         {
