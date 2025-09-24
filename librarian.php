@@ -600,7 +600,8 @@
     // Print message with tools for RSS feed management and instance information
     function show_footer($param_id)
     {
-        global $g_use_rss_format, $g_extract_content, $g_max_items, $g_instance_contact, $g_custom_xslt;
+        global $g_use_rss_format, $g_extract_content, $g_max_items, 
+               $g_instance_contact, $g_custom_xslt, $g_admin_id;
 
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
@@ -608,52 +609,56 @@
         print('
         <section>');
 
-        if (!empty($param_id))
-        print('
-            <h2>Your feed</h2>
-            <p>
-                Bookmark your <a href="'. $personal_url .'">personal URL</a><br> 
-                Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed-reader
-            </p>
+        if ($param_id !== $g_admin_id)
+        {
+            if (!empty($param_id))
+            print('
+                <h2>Your feed</h2>
+                <p>
+                    Bookmark your <a href="'. $personal_url .'">personal URL</a><br> 
+                    Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed-reader
+                </p>
 
-            <h2>Tools</h2>
-            <p>
-                <a href="' . ($g_custom_xslt === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
-                <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>, 
-                <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-                <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple Shortcut</a>
-            </p>');
-        else
-        print('
-            <h2>What Is This?</h2>
-            <p>
-                <a href="https://github.com/thefranke/rss-librarian/wiki#how-to-use">Read the wiki!</a>
-            </p>
-                
-            <p>
-                RSS-Librarian is a read-it-later service for RSS purists. You can store articles from the 
-                web in your own <em>personal RSS/Atom feed</em> and use your favorite feed-reader software 
-                to read your stored articles later. RSS-Librarian uses no database and works without accounts.
-            </p>
+                <h2>Tools</h2>
+                <p>
+                    <a href="' . ($g_custom_xslt === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
+                    <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>, 
+                    <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
+                    <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple Shortcut</a>
+                </p>');
+            else
+            print('
+                <h2>What Is This?</h2>
+                <p>
+                    <a href="https://github.com/thefranke/rss-librarian/wiki#how-to-use">Read the wiki!</a>
+                </p>
+                    
+                <p>
+                    RSS-Librarian is a read-it-later service for RSS purists. You can store articles from the 
+                    web in your own <em>personal RSS/Atom feed</em> and use your favorite feed-reader software 
+                    to read your stored articles later. RSS-Librarian uses no database and works without accounts.
+                </p>
 
-            <h2>Get Started</h2>
-            <p>
-                Simply add a URL you want to read later above. Bookmark your <em>personal URL</em> 
-                and subscribe to your <em>personal feed</em> with a reader app (see below). With the 
-                <em>personal URL</em> you can manage and add more articles to your feed for later 
-                reading.
-            </p>
-        ');
+                <h2>Get Started</h2>
+                <p>
+                    Simply add a URL you want to read later above. Bookmark your <em>personal URL</em> 
+                    and subscribe to your <em>personal feed</em> with a reader app (see below). With the 
+                    <em>personal URL</em> you can manage and add more articles to your feed for later 
+                    reading.
+                </p>
+            ');
 
-        print('
+            print('
             <h2>Feed-Readers</h2>
             <p>  
                 <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
                 <a href="https://netnewswire.com/">NetNewsWire (iOS/MacOS)</a>, 
                 <a href="https://www.feedflow.dev/">FeedFlow (Windows/Linux)</a>,
                 <a href="https://nodetics.com/feedbro/">FeedBro (Firefox/Chrome/Brave)</a>
-            </p>
-        
+            </p>');
+        }
+
+        print('
             <h2>Instance Info</h2>
             <p>
                 # of hosted feeds: ' . count_feeds() . '<br>
@@ -943,8 +948,7 @@
         show_saved_urls($param_id);
     }
     
-    if ($param_id !== $g_admin_id)
-        show_footer($param_id);
+    show_footer($param_id);
 ?>
 
     </body>
