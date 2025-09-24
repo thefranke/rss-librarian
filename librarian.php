@@ -865,7 +865,7 @@
     // Admin interface
     else if (!empty($param_id) && $param_id === $g_admin_id)
     {
-        if (empty($param_url))
+        if (empty($param_url) && empty($param_delete))
         {
             print('
             <section>
@@ -876,8 +876,20 @@
                     <input type="submit" value="Add to all feeds">
                 </form>
             </section>
+            
+            <section>
+                <h2>Clean up abandoned feeds</h2>
+                <p>
+                    There are currently ' . run_maintenance(true) . ' abandoned feeds.
+                </p>
+                <form action="' . $g_url_librarian . '">
+                    <input type="hidden" id="id" name="id" value="' . $param_id . '">
+                    <input type="hidden" id="delete" name="delete" value="1">
+                    <input type="submit" value="Clean up">
+                </form>
+            </section>');
         }
-        else
+        else if (!empty($param_url))
         {
             // iterate over all feeds
             $feeds = glob($g_dir_feeds . '/*.xml');
@@ -887,7 +899,11 @@
                 add_custom_item($feed_id, $param_url);
             }
 
-            print('<h2>Message sent to ' . count_feeds() . ' feeds.</h2>');
+            print('<section><h2>Message sent to ' . count_feeds() . ' feeds.</h2></section>');
+        }
+        else if (!empty($param_delete))
+        {
+            print('<section><h2>Cleaned up ' . run_maintenance(true) . ' abandoned feeds</h2></section>');
         }
     }
 
