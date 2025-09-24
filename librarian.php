@@ -484,8 +484,10 @@
         if ($found)
         {
             write_feed_file($param_id, $items);
-            return '<a href="' . $param_url . '">' . $param_url . '</a> removed';
+            return true;
         }
+        
+        return false;
     }
 
     // Add item to array of items from a feed
@@ -520,13 +522,13 @@
         foreach($items as $item)
         {
             if ($item['url'] == $param_url)
-                return 'URL already added';
+                return false;
         }
 
         $items = add_item($items, extract_content($param_url));
         
         write_feed_file($param_id, $items);
-        return '<a href="' . $param_url . '">' . $param_url . '</a> added';
+        return true;
     }
 
     // Add URL to personal feed
@@ -852,15 +854,18 @@
         // Add or remove URL
         if (!empty($param_id) && !empty($param_url))
         {
-            $result = '';
-
             if ($param_delete == '1')
-                $result = remove_url($param_id, $param_url);
+            {
+                if(remove_url($param_id, $param_url))
+                    print('<p><a href="' . $param_url . '">' . $param_url . '</a> removed</p>');
+            }
             else
-                $result = add_url($param_id, $param_url); 
-
-            print('
-            <p>' . $result . '</p>');
+            {
+                if(add_url($param_id, $param_url))
+                    print('<p><a href="' . $param_url . '">' . $param_url . '</a> added</p>');
+                else
+                    print('<p>URL already added!</p>');
+            }
         }
 
         print('
