@@ -547,9 +547,10 @@
         $items = read_feed_file($param_id);
         $item = [
             'url' => '',
-            'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d"),
+            'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d H:m"),
             'content' => $message,
-            'author' => '',
+            'timestamp' => time(),
+            'author' => 'Admin',
         ];
         $items = add_item($items, $item);
         write_feed_file($param_id, $items);
