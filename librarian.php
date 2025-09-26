@@ -609,7 +609,7 @@
         print('
         <section>');
 
-        if ($param_id !== $g_admin_id)
+        if ($param_id !== $g_admin_id || empty($g_admin_id))
         {
             if (!empty($param_id))
             print('
