@@ -834,7 +834,7 @@
     </head>
     <body>
         <section>
-            <a href="librarian.php"><img alt="" src="<?php print($g_logo); ?>"></a>
+            <a href="librarian.php<?php if (!empty($param_id)) print('?id=' . $param_id); ?>"><img alt="" src="<?php print($g_logo); ?>"></a>
             <h1>RSS-Librarian<?php if (!empty($param_id)) { $feed_name = ($param_id === $g_admin_id) ? 'admin' : substr($param_id, 0, 4); print(' (' . $feed_name . ')'); } ?></h1>
             <h3>"Knoweldge is power, store it well."</h3>
             <h3>
@@ -893,7 +893,8 @@
                     <input type="hidden" id="delete" name="delete" value="1">
                     <input type="submit" value="Clean up">
                 </form>
-            </section>');
+            </section>
+            ');
         }
         else if (!empty($param_url))
         {
