@@ -682,6 +682,8 @@
 
         $dir = new DirectoryIterator($g_dir_feeds);
         $current_time = time();
+
+        $abandoned_feeds = array();
         
         foreach ($dir as $fileinfo) 
         {
@@ -689,29 +691,27 @@
                 continue;
             
             $age = $current_time - $fileinfo->getMTime();
-            $feed_id = $fileinfo->getBasename();
+            $feed_id = substr($fileinfo->getBasename(), 0, -4);
             $feed_file = $fileinfo->getPathname();
 
             // Delete abandoned files older than $g_delete_abandoned_after
             if ($age > $g_delete_abandoned_after)
-            {
-                if (!$is_dry_run) unlink($feed_file);
-                $num_removed++;
-            }
+                $abandoned_feeds[] = $feed_id;
 
             // These are likely files created by accident (max one entry)
             else if ($age > $g_delete_bogus_after)
             {
                 $items = read_feed_file($feed_id);
                 if (count($items) <= 1)
-                {
-                    if (!$is_dry_run) unlink($feed_file);
-                    $num_removed++;
-                }
+                    $abandoned_feeds[] = $feed_id;
             }
         }
 
-        return $num_removed;
+        if (!$is_dry_run)
+            foreach($abandoned_feeds as $abandoned)
+                unlink(get_local_feed_file($abandoned));
+
+        return $abandoned_feeds;
     }
 
     update_configuration();
@@ -873,6 +873,8 @@
     {
         if (empty($param_url) && empty($param_delete))
         {
+            $abandoned_feeds = run_maintenance(true);
+
             print('
             <section>
                 <h2>Send a message to all feeds</h2>
@@ -886,8 +888,16 @@
             <section>
                 <h2>Clean up abandoned feeds</h2>
                 <p>
-                    There are currently ' . run_maintenance(true) . ' abandoned feeds.
+                    There are currently ' . count($abandoned_feeds) . ' abandoned feeds.
                 </p>
+                <ul>
+            ');
+
+            foreach($abandoned_feeds as $abandoned)
+                print('<li>' . $abandoned . '</li>');
+
+            print('
+                </ul>
                 <form action="' . $g_url_librarian . '">
                     <input type="hidden" id="id" name="id" value="' . $param_id . '">
                     <input type="hidden" id="delete" name="delete" value="1">
@@ -910,7 +920,7 @@
         }
         else if (!empty($param_delete))
         {
-            print('<section><h2>Cleaned up ' . run_maintenance(true) . ' abandoned feeds</h2></section>');
+            print('<section><h2>Cleaned up ' . count(run_maintenance(false)) . ' abandoned feeds</h2></section>');
         }
     }
 
