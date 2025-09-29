@@ -47,9 +47,17 @@
     $g_delete_abandoned_after = 31536000; // 1 year -> 60*60*24*365
     $g_delete_bogus_after = 7776000; // 3 months -> 60*60*24*30*3
 
+    // Create a unique id for users
     function make_id()
     {
         return hash('sha256', random_bytes(18));
+    }
+
+    // Check if an id is the admin
+    function is_admin($param_id)
+    {
+        global $g_admin_id;
+        return !empty($param_id) && !empty($g_admin_id) && ($g_admin_id === $param_id);
     }
 
     // Read configuration from JSON file
@@ -67,36 +75,36 @@
         {
             $data = json_decode($json);
 
-            if (property_exists($data, 'extract_content')) $g_extract_content = $data->extract_content;
-            if (property_exists($data, 'max_items')) $g_max_items = $data->max_items;
-            if (property_exists($data, 'use_rss_format')) $g_use_rss_format = $data->use_rss_format;
-            if (property_exists($data, 'dir_feeds')) $dir_feeds = $data->dir_feeds;
-            if (property_exists($data, 'instance_contact')) $instance_contact = $data->instance_contact;
-            if (property_exists($data, 'icon')) $g_icon = $data->icon;
-            if (property_exists($data, 'logo')) $g_logo = $data->logo;
-            if (property_exists($data, 'custom_xslt')) $g_custom_xslt = $data->custom_xslt;
-            if (property_exists($data, 'custom_css')) $g_custom_css = $data->custom_css;
-            if (property_exists($data, 'admin_id')) $g_admin_id = $data->admin_id;
-            if (property_exists($data, 'delete_abandoned_after')) $g_delete_abandoned_after = $data->delete_abandoned_after;
-            if (property_exists($data, 'delete_bogus_after')) $g_delete_bogus_after = $data->delete_bogus_after;
+            if (property_exists($data, 'extract_content'))          $g_extract_content          = $data->extract_content;
+            if (property_exists($data, 'max_items'))                $g_max_items                = $data->max_items;
+            if (property_exists($data, 'use_rss_format'))           $g_use_rss_format           = $data->use_rss_format;
+            if (property_exists($data, 'dir_feeds'))                $dir_feeds                  = $data->dir_feeds;
+            if (property_exists($data, 'instance_contact'))         $instance_contact           = $data->instance_contact;
+            if (property_exists($data, 'icon'))                     $g_icon                     = $data->icon;
+            if (property_exists($data, 'logo'))                     $g_logo                     = $data->logo;
+            if (property_exists($data, 'custom_xslt'))              $g_custom_xslt              = $data->custom_xslt;
+            if (property_exists($data, 'custom_css'))               $g_custom_css               = $data->custom_css;
+            if (property_exists($data, 'admin_id'))                 $g_admin_id                 = $data->admin_id;
+            if (property_exists($data, 'delete_abandoned_after'))   $g_delete_abandoned_after   = $data->delete_abandoned_after;
+            if (property_exists($data, 'delete_bogus_after'))       $g_delete_bogus_after       = $data->delete_bogus_after;
         }
 
         if (empty($g_admin_id))
             $g_admin_id = make_id();
 
         file_put_contents($g_config_file, json_encode([
-            'extract_content' => $g_extract_content,
-            'max_items' => $g_max_items,
-            'use_rss_format' => $g_use_rss_format,
-            'dir_feeds' => $g_dir_feeds,
-            'instance_contact' => $g_instance_contact,
-            'icon' => $g_icon,
-            'logo' => $g_logo,
-            'custom_xslt' => $g_custom_xslt,
-            'custom_css' => $g_custom_css,
-            'admin_id' => $g_admin_id,
-            'delete_abandoned_after' => $g_delete_abandoned_after,
-            'delete_bogus_after' => $g_delete_bogus_after,
+            'extract_content'           => $g_extract_content,
+            'max_items'                 => $g_max_items,
+            'use_rss_format'            => $g_use_rss_format,
+            'dir_feeds'                 => $g_dir_feeds,
+            'instance_contact'          => $g_instance_contact,
+            'icon'                      => $g_icon,
+            'logo'                      => $g_logo,
+            'custom_xslt'               => $g_custom_xslt,
+            'custom_css'                => $g_custom_css,
+            'admin_id'                  => $g_admin_id,
+            'delete_abandoned_after'    => $g_delete_abandoned_after,
+            'delete_bogus_after'        => $g_delete_bogus_after,
         ], JSON_PRETTY_PRINT));
     }
 
@@ -499,7 +507,7 @@
         return false;
     }
 
-    // Add item to array of items from a feed
+    // Add stored article item to array of items if a personal feed
     function add_item($items, $item)
     {
         global $g_max_items;
@@ -540,7 +548,7 @@
         return true;
     }
 
-    // Add URL to personal feed
+    // Add a custom article text to a personal feed
     function add_custom_item($param_id, $message)
     {
         global $g_url_librarian;
@@ -569,6 +577,49 @@
     {
         global $g_url_librarian;
         return $g_url_librarian . '?id=' . $param_id;
+    }
+
+    // Go through feeds directory and clean up likely abandoned feed files
+    function run_maintenance($is_dry_run)
+    {
+        global $g_dir_feeds;
+        global $g_delete_abandoned_after;
+        global $g_delete_bogus_after;
+
+        $num_removed = 0;
+
+        $dir = new DirectoryIterator($g_dir_feeds);
+        $current_time = time();
+
+        $abandoned_feeds = array();
+        
+        foreach ($dir as $fileinfo) 
+        {
+            if ($fileinfo->isDot() || $fileinfo->getExtension() != "xml") 
+                continue;
+            
+            $age = $current_time - $fileinfo->getMTime();
+            $feed_id = substr($fileinfo->getBasename(), 0, -4);
+            $feed_file = $fileinfo->getPathname();
+
+            // Delete abandoned files older than $g_delete_abandoned_after
+            if ($age > $g_delete_abandoned_after)
+                $abandoned_feeds[] = $feed_id;
+
+            // These are likely files created by accident (max one entry)
+            else if ($age > $g_delete_bogus_after)
+            {
+                $items = read_feed_file($feed_id);
+                if (count($items) <= 1)
+                    $abandoned_feeds[] = $feed_id;
+            }
+        }
+
+        if (!$is_dry_run)
+            foreach($abandoned_feeds as $abandoned)
+                unlink(get_local_feed_file($abandoned));
+
+        return $abandoned_feeds;
     }
 
     // Display a list of URLs that are saved in the feed 
@@ -601,7 +652,7 @@
     function show_footer($param_id)
     {
         global $g_use_rss_format, $g_extract_content, $g_max_items, 
-               $g_instance_contact, $g_custom_xslt, $g_admin_id;
+               $g_instance_contact, $g_custom_xslt;
 
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
@@ -609,7 +660,7 @@
         print('
         <section>');
 
-        if ($param_id !== $g_admin_id || empty($g_admin_id))
+        if (!is_admin($param_id))
         {
             if (!empty($param_id))
             print('
@@ -671,54 +722,132 @@
         </section>');
     }
 
-    // Go through feeds directory and clean up likely abandoned feed files
-    function run_maintenance($is_dry_run)
+    // Print main interface
+    function show_interface($param_id, $param_url)
     {
-        global $g_dir_feeds;
-        global $g_delete_abandoned_after;
-        global $g_delete_bogus_after;
+        global $g_url_librarian, $g_dir_feeds;
 
-        $num_removed = 0;
-
-        $dir = new DirectoryIterator($g_dir_feeds);
-        $current_time = time();
-
-        $abandoned_feeds = array();
-        
-        foreach ($dir as $fileinfo) 
+        // Adding URL for the first time, make sure user has saved their personal URLs!
+        if (empty($param_id) && !empty($param_url))
         {
-            if ($fileinfo->isDot() || $fileinfo->getExtension() != "xml") 
-                continue;
-            
-            $age = $current_time - $fileinfo->getMTime();
-            $feed_id = substr($fileinfo->getBasename(), 0, -4);
-            $feed_file = $fileinfo->getPathname();
+            // Create new user id
+            $param_id = make_id();
 
-            // Delete abandoned files older than $g_delete_abandoned_after
-            if ($age > $g_delete_abandoned_after)
-                $abandoned_feeds[] = $feed_id;
+            print('
+            <section>
+                <h2>You are about to create a new feed</h2>
+                <p>
+                    Please confirm that you bookmarked the two URLs in "Your Feed" below before continuing!
+                </p>
 
-            // These are likely files created by accident (max one entry)
-            else if ($age > $g_delete_bogus_after)
+                <form action="' . $g_url_librarian . '">
+                    <input type="hidden" id="url" name="url" value="' . $param_url . '">
+                    <input type="hidden" id="id"  name="id" value="' . $param_id . '">
+                    <input type="submit" value="Confirm">
+                </form>
+            </section>
+            ');
+        }
+
+        // Admin interface
+        else if (!empty($param_id) && is_admin($param_id))
+        {
+            if (empty($param_url) && empty($param_delete))
             {
-                $items = read_feed_file($feed_id);
-                if (count($items) <= 1)
-                    $abandoned_feeds[] = $feed_id;
+                $abandoned_feeds = run_maintenance(true);
+
+                print('
+                <section>
+                    <h2>Send a message to all feeds</h2>
+                    <form action="' . $g_url_librarian . '">
+                        <textarea type="text" id="url" name="url" rows="4"></textarea>
+                        <input type="hidden" id="id" name="id" value="' . $param_id . '">
+                        <input type="submit" value="Add to all feeds">
+                    </form>
+                </section>
+                
+                <section>
+                    <h2>Clean up abandoned feeds</h2>
+                    <p>
+                        There are currently ' . count($abandoned_feeds) . ' abandoned feeds.
+                    </p>
+                    <ul>
+                ');
+
+                foreach($abandoned_feeds as $abandoned)
+                    print('<li>' . $abandoned . '</li>');
+
+                print('
+                    </ul>
+                    <form action="' . $g_url_librarian . '">
+                        <input type="hidden" id="id" name="id" value="' . $param_id . '">
+                        <input type="hidden" id="delete" name="delete" value="1">
+                        <input type="submit" value="Clean up">
+                    </form>
+                </section>
+                ');
+            }
+            else if (!empty($param_url))
+            {
+                // iterate over all feeds
+                $feeds = glob($g_dir_feeds . '/*.xml');
+                foreach($feeds as $f)
+                {
+                    $feed_id = basename($f, '.xml');
+                    add_custom_item($feed_id, $param_url);
+                }
+
+                print('<section><h2>Message sent to ' . count($feeds) . ' feeds.</h2></section>');
+            }
+            else if (!empty($param_delete))
+            {
+                print('<section><h2>Cleaned up ' . count(run_maintenance(false)) . ' abandoned feeds</h2></section>');
             }
         }
 
-        if (!$is_dry_run)
-            foreach($abandoned_feeds as $abandoned)
-                unlink(get_local_feed_file($abandoned));
+        // Returning user view
+        else
+        {
+            print('
+            <section>
+                <h2>Add a new URL to your feed</h2>
+                <form action="' . $g_url_librarian . '">
+                    <input type="url" id="url" name="url" placeholder="https://some-url/example.html">
+                    <input type="hidden" id="id" name="id" value="' . $param_id . '">
+                    <input type="submit" value="Add to feed">
+                </form>');
 
-        return $abandoned_feeds;
+            // Add or remove URL
+            if (!empty($param_id) && !empty($param_url))
+            {
+                if ($param_delete == '1')
+                {
+                    if(remove_url($param_id, $param_url))
+                        print('<p><a href="' . $param_url . '">' . $param_url . '</a> removed</p>');
+                }
+                else
+                {
+                    if(add_url($param_id, $param_url))
+                        print('<p><a href="' . $param_url . '">' . $param_url . '</a> added</p>');
+                    else
+                        print('<p>URL already added!</p>');
+                }
+            }
+
+            print('
+            </section>');
+
+            show_saved_urls($param_id);
+        }
+
+        show_footer($param_id);
     }
-
-    update_configuration();
 
     $param_url = fetch_param('url');
     $param_id = fetch_param('id');
     $param_delete = fetch_param('delete');
+    
+    update_configuration();
 ?>
 
 <!DOCTYPE html>
@@ -729,7 +858,7 @@
         <link rel="shortcut icon" href="<?php print($g_icon); ?>">
         <?php
         // User exists?
-        if (!empty($param_id))
+        if (!is_admin($param_id) && !empty($param_id))
             print('<link rel="alternate" type="application/' . (($g_use_rss_format) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
         ?>
 
@@ -835,132 +964,16 @@
     <body>
         <section>
             <a href="librarian.php<?php if (!empty($param_id)) print('?id=' . $param_id); ?>"><img alt="" src="<?php print($g_logo); ?>"></a>
-            <h1>RSS-Librarian<?php if (!empty($param_id)) { $feed_name = ($param_id === $g_admin_id) ? 'admin' : substr($param_id, 0, 4); print(' (' . $feed_name . ')'); } ?></h1>
+            <h1>RSS-Librarian<?php if (!empty($param_id)) { print(' (' . (is_admin($param_id) ? 'admin' : substr($param_id, 0, 4)) . ')'); } ?></h1>
             <h3>"Knoweldge is power, store it well."</h3>
             <h3>
                 [<a href="https://github.com/thefranke/rss-librarian">Github</a>] 
-                <?php if (!empty($param_id)) { ?>
+                <?php if (!is_admin($param_id)) { ?>
                     [<a href="<?php print(get_personal_url($param_id)); ?>">Manage</a>] 
                     [<a href="<?php print(get_feed_url($param_id)); ?>">Subscribe</a>]
                 <?php } ?>
             </h3>
         </section>
-<?php
-    // Adding URL for the first time, make sure user has saved their personal URLs!
-    if (empty($param_id) && !empty($param_url))
-    {
-        // Create new user id
-        $param_id = make_id();
-
-        print('
-        <section>
-            <h2>You are about to create a new feed</h2>
-            <p>
-                Please confirm that you bookmarked the two URLs in "Your Feed" below before continuing!
-            </p>
-
-            <form action="' . $g_url_librarian . '">
-                <input type="hidden" id="url" name="url" value="' . $param_url . '">
-                <input type="hidden" id="id"  name="id" value="' . $param_id . '">
-                <input type="submit" value="Confirm">
-            </form>
-        </section>
-        ');
-    }
-
-    // Admin interface
-    else if (!empty($param_id) && $param_id === $g_admin_id)
-    {
-        if (empty($param_url) && empty($param_delete))
-        {
-            $abandoned_feeds = run_maintenance(true);
-
-            print('
-            <section>
-                <h2>Send a message to all feeds</h2>
-                <form action="' . $g_url_librarian . '">
-                    <textarea type="text" id="url" name="url" rows="4"></textarea>
-                    <input type="hidden" id="id" name="id" value="' . $param_id . '">
-                    <input type="submit" value="Add to all feeds">
-                </form>
-            </section>
-            
-            <section>
-                <h2>Clean up abandoned feeds</h2>
-                <p>
-                    There are currently ' . count($abandoned_feeds) . ' abandoned feeds.
-                </p>
-                <ul>
-            ');
-
-            foreach($abandoned_feeds as $abandoned)
-                print('<li>' . $abandoned . '</li>');
-
-            print('
-                </ul>
-                <form action="' . $g_url_librarian . '">
-                    <input type="hidden" id="id" name="id" value="' . $param_id . '">
-                    <input type="hidden" id="delete" name="delete" value="1">
-                    <input type="submit" value="Clean up">
-                </form>
-            </section>
-            ');
-        }
-        else if (!empty($param_url))
-        {
-            // iterate over all feeds
-            $feeds = glob($g_dir_feeds . '/*.xml');
-            foreach($feeds as $f)
-            {
-                $feed_id = basename($f, '.xml');
-                add_custom_item($feed_id, $param_url);
-            }
-
-            print('<section><h2>Message sent to ' . count($feeds) . ' feeds.</h2></section>');
-        }
-        else if (!empty($param_delete))
-        {
-            print('<section><h2>Cleaned up ' . count(run_maintenance(false)) . ' abandoned feeds</h2></section>');
-        }
-    }
-
-    // Returning user view
-    else
-    {
-        print('
-        <section>
-            <h2>Add a new URL to your feed</h2>
-            <form action="' . $g_url_librarian . '">
-                <input type="url" id="url" name="url" placeholder="https://some-url/example.html">
-                <input type="hidden" id="id" name="id" value="' . $param_id . '">
-                <input type="submit" value="Add to feed">
-            </form>');
-
-        // Add or remove URL
-        if (!empty($param_id) && !empty($param_url))
-        {
-            if ($param_delete == '1')
-            {
-                if(remove_url($param_id, $param_url))
-                    print('<p><a href="' . $param_url . '">' . $param_url . '</a> removed</p>');
-            }
-            else
-            {
-                if(add_url($param_id, $param_url))
-                    print('<p><a href="' . $param_url . '">' . $param_url . '</a> added</p>');
-                else
-                    print('<p>URL already added!</p>');
-            }
-        }
-
-        print('
-        </section>');
-
-        show_saved_urls($param_id);
-    }
-    
-    show_footer($param_id);
-?>
-
+        <?php show_interface($param_id, $param_url); ?>
     </body>
 </html>
