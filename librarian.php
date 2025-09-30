@@ -722,6 +722,31 @@
         </section>');
     }
 
+    // Print header with personal urls
+    function show_header($param_id)
+    {
+        global $g_url_librarian, $g_logo;
+
+        print('
+        <section>
+            <a href="' . $g_url_librarian . ((!empty($param_id)) ? '?id=' . $param_id : '') . '"><img alt="" src="' . $g_logo . '"></a>
+            <h1>RSS-Librarian' . ((!empty($param_id)) ? '(' . is_admin($param_id) ? 'admin' : substr($param_id, 0, 4) . ')': '') . '</h1>
+            <h3>"Knoweldge is power, store it well."</h3>
+            <h3>
+                [<a href="https://github.com/thefranke/rss-librarian">Github</a>]');
+
+        if (!is_admin($param_id))
+            print('
+            [<a href="' . get_personal_url($param_id) . '">Manage</a>] 
+            [<a href="' . get_feed_url($param_id) . '">Subscribe</a>]
+            ');
+
+        print('
+            </h3>
+        </section>
+        ');
+    }
+
     // Print main interface
     function show_interface($param_id, $param_url)
     {
@@ -839,8 +864,6 @@
 
             show_saved_urls($param_id);
         }
-
-        show_footer($param_id);
     }
 
     $param_url = fetch_param('url');
@@ -962,18 +985,10 @@
         <?php } ?>
     </head>
     <body>
-        <section>
-            <a href="librarian.php<?php if (!empty($param_id)) print('?id=' . $param_id); ?>"><img alt="" src="<?php print($g_logo); ?>"></a>
-            <h1>RSS-Librarian<?php if (!empty($param_id)) { print(' (' . (is_admin($param_id) ? 'admin' : substr($param_id, 0, 4)) . ')'); } ?></h1>
-            <h3>"Knoweldge is power, store it well."</h3>
-            <h3>
-                [<a href="https://github.com/thefranke/rss-librarian">Github</a>] 
-                <?php if (!is_admin($param_id)) { ?>
-                    [<a href="<?php print(get_personal_url($param_id)); ?>">Manage</a>] 
-                    [<a href="<?php print(get_feed_url($param_id)); ?>">Subscribe</a>]
-                <?php } ?>
-            </h3>
-        </section>
-        <?php show_interface($param_id, $param_url); ?>
+        <?php 
+        show_header($param_id);
+        show_interface($param_id, $param_url);
+        show_footer($param_id);
+        ?>
     </body>
 </html>
