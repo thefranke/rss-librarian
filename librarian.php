@@ -684,7 +684,7 @@
         print('
         <section>
             <a href="' . $g_url_librarian . ((!empty($param_id)) ? '?id=' . $param_id : '') . '"><img alt="" src="' . $g_config['logo'] . '"></a>
-            <h1>RSS-Librarian' . ((!empty($param_id)) ? '(' . is_admin($param_id) ? 'admin' : substr($param_id, 0, 4) . ')': '') . '</h1>
+            <h1>RSS-Librarian' . ((!empty($param_id)) ? (' (' . (is_admin($param_id) ? 'admin' : substr($param_id, 0, 4)) . ')') : '') . '</h1>
             <h3>"Knoweldge is power, store it well."</h3>
             <h3>
                 [<a href="https://github.com/thefranke/rss-librarian">Github</a>]');
