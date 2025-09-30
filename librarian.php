@@ -8,42 +8,43 @@
     use fivefilters\Readability\Configuration;
     use fivefilters\Readability\ParseException;
 
-    // Modify settings below after a first run in the following file rather than in source
-    $g_config_file = 'rsslibrarian-config.json';
-
-    // Set to true if extracted content should be added to feed
-    $g_extract_content = true;
-
-    // Maximum length of feed
-    $g_max_items = 25;
-
-    // Set to true to store feeds as RSS 2.0, false as Atom
-    $g_use_rss_format = true;
-
-    // Directory of feed files
-    $g_dir_feeds = 'feeds';
-
-    // Instance administrator contact
-    $g_instance_contact = '<a href="https://github.com/thefranke/rss-librarian/issues">Open a Github Issue</a>';
-    
     // Base location
     $g_url_librarian = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
     $g_url_base = dirname($g_url_librarian);
-    
-    // RSS-Librarian logo
-    $g_logo = 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg';
-    $g_icon = $g_logo;
 
-    // Custom CSS & XSLT Stylesheets
-    $g_custom_xslt = '';
-    $g_custom_css = '';
+    // Config JSON file to store instance settings
+    $g_config_file = 'rsslibrarian-config.json';
 
-    // Admin ID to attach instance messages to all feeds
-    $g_admin_id = '';
+    // Configuration
+    $g_config = array(
+        // Set to true if extracted content should be added to feed
+        'extract_content'           => true,
 
-    // Time before feeds are considered abandoned
-    $g_delete_abandoned_after = 31536000; // 1 year -> 60*60*24*365
-    $g_delete_bogus_after = 7776000; // 3 months -> 60*60*24*30*3
+        // Maximum length of feed
+        'max_items'                 => 25,
+
+        // Set to true to store feeds as RSS 2.0, false as Atom
+        'use_rss_format'            => true,
+
+        // Directory of feed files
+        'dir_feeds'                 => 'feeds',
+
+        // Instance administrator contact
+        'instance_contact'          => '<a href="https://github.com/thefranke/rss-librarian/issues">Open a Github Issue</a>',
+
+        // Instance visual customization
+        'icon'                      => 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg',
+        'logo'                      => 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg',
+        'custom_xslt'               => '',
+        'custom_css'                => '',
+
+        // Admin ID to attach instance messages to all feeds
+        'admin_id'                  => '',
+
+        // Time before feeds are considered abandoned
+        'delete_abandoned_after'    => 31536000, // 1 year -> 60*60*24*365
+        'delete_bogus_after'        => 7776000, // 3 months -> 60*60*24*30*3
+    );
 
     // Create a unique id for users
     function make_id()
@@ -54,55 +55,29 @@
     // Check if an id is the admin
     function is_admin($param_id)
     {
-        global $g_admin_id;
-        return !empty($param_id) && !empty($g_admin_id) && ($g_admin_id === $param_id);
+        global $g_config;
+        return !empty($param_id) && !empty($g_config['admin_id']) && ($g_config['admin_id'] === $param_id);
     }
 
     // Read configuration from JSON file
     function update_configuration()
     {
-        global $g_config_file, $g_extract_content, $g_max_items, $g_use_rss_format, 
-               $g_dir_feeds, $g_instance_contact, $g_icon, $g_logo, 
-               $g_custom_xslt, $g_custom_css, $g_admin_id,
-               $g_delete_abandoned_after, $g_delete_bogus_after;
+        global $g_config_file, $g_config;
         
         $json = @file_get_contents($g_config_file);
 
         if (!empty($json))
         {
             $data = json_decode($json);
-
-            if (property_exists($data, 'extract_content'))          $g_extract_content          = $data->extract_content;
-            if (property_exists($data, 'max_items'))                $g_max_items                = $data->max_items;
-            if (property_exists($data, 'use_rss_format'))           $g_use_rss_format           = $data->use_rss_format;
-            if (property_exists($data, 'dir_feeds'))                $dir_feeds                  = $data->dir_feeds;
-            if (property_exists($data, 'instance_contact'))         $instance_contact           = $data->instance_contact;
-            if (property_exists($data, 'icon'))                     $g_icon                     = $data->icon;
-            if (property_exists($data, 'logo'))                     $g_logo                     = $data->logo;
-            if (property_exists($data, 'custom_xslt'))              $g_custom_xslt              = $data->custom_xslt;
-            if (property_exists($data, 'custom_css'))               $g_custom_css               = $data->custom_css;
-            if (property_exists($data, 'admin_id'))                 $g_admin_id                 = $data->admin_id;
-            if (property_exists($data, 'delete_abandoned_after'))   $g_delete_abandoned_after   = $data->delete_abandoned_after;
-            if (property_exists($data, 'delete_bogus_after'))       $g_delete_bogus_after       = $data->delete_bogus_after;
+            foreach(array_keys($g_config) as $k)
+                if (property_exists($data, $k)) 
+                    $g_config[$k] = $data->$k;
         }
 
-        if (empty($g_admin_id))
-            $g_admin_id = make_id();
+        if (empty($g_config['admin_id']))
+            $g_config['admin_id'] = make_id();
 
-        file_put_contents($g_config_file, json_encode([
-            'extract_content'           => $g_extract_content,
-            'max_items'                 => $g_max_items,
-            'use_rss_format'            => $g_use_rss_format,
-            'dir_feeds'                 => $g_dir_feeds,
-            'instance_contact'          => $g_instance_contact,
-            'icon'                      => $g_icon,
-            'logo'                      => $g_logo,
-            'custom_xslt'               => $g_custom_xslt,
-            'custom_css'                => $g_custom_css,
-            'admin_id'                  => $g_admin_id,
-            'delete_abandoned_after'    => $g_delete_abandoned_after,
-            'delete_bogus_after'        => $g_delete_bogus_after,
-        ], JSON_PRETTY_PRINT));
+        file_put_contents($g_config_file, json_encode($g_config, JSON_PRETTY_PRINT));
     }
 
     // Fetch parameters given to librarian
@@ -142,8 +117,8 @@
     // Produce path for local feed file
     function get_local_feed_file($param_id)
     {
-        global $g_dir_feeds;
-        return $g_dir_feeds . '/' . $param_id . '.xml';
+        global $g_config;
+        return $g_config['dir_feeds'] . '/' . $param_id . '.xml';
     }
 
     // Produce URL for user feed
@@ -172,10 +147,10 @@
     // Creates the base stub for an Atom feed
     function make_atom_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
-        global $g_url_librarian, $g_icon, $g_custom_xslt;
+        global $g_url_librarian, $g_config;
 
         return '<?xml version="1.0" encoding="utf-8"?>
-            ' . (($g_custom_xslt !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_custom_xslt . '" ?>' : '') . '
+            ' . (($g_config['custom_xslt'] !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_config['custom_xslt'] . '" ?>' : '') . '
             <feed xmlns="http://www.w3.org/2005/Atom">
                 <link rel="self" href="' .$feed_url . '" />
                 <title>' . $title . '</title>
@@ -185,8 +160,8 @@
                 <author>
                     <name>RSS-Librarian</name>
                 </author>
-                <icon>' . $g_icon .'</icon>
-                <logo>' . $g_icon .'</logo>
+                <icon>' . $g_config['icon'] .'</icon>
+                <logo>' . $g_config['logo'] .'</logo>
             </feed>    
         ';
     }
@@ -194,10 +169,10 @@
     // Creates the base stub for an RSS feed
     function make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
-        global $g_url_librarian, $g_icon, $g_custom_xslt;
+        global $g_url_librarian, $g_config;
 
         return '<?xml version="1.0" encoding="utf-8"?>
-            ' . (($g_custom_xslt !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_custom_xslt . '"?>' : '') . '
+            ' . (($g_config['custom_xslt'] !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_config['custom_xslt'] . '"?>' : '') . '
             <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
                 <channel>
                     <title>' . $title . '</title>
@@ -213,7 +188,7 @@
     // Creates an XML element for a feed stub for the configured format (RSS or Atom)
     function make_feed($param_id)
     {
-        global $g_use_rss_format, $g_url_librarian;
+        global $g_config, $g_url_librarian;
 
         $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
         $subtitle = 'A read-it-later service for RSS purists';
@@ -222,7 +197,7 @@
         $ts_updated = time();
 
         $feed_xml_str = '';
-        if ($g_use_rss_format)
+        if ($g_config['use_rss_format'])
             $feed_xml_str = make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
         else 
             $feed_xml_str = make_atom_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
@@ -278,18 +253,18 @@
     // Create XML element for an RSS item
     function make_feed_item($item)
     {
-        global $g_extract_content, $g_use_rss_format;
+        global $g_config;
 
         if (!array_key_exists('date', $item) || $item['date'] == 0)
             $item['date'] = time();
 
-        if (!$g_extract_content)
+        if (!$g_config['extract_content'])
             $item['content'] = 'Content extraction disabled or failed, please enable reader mode for this entry.';
         else if (!array_key_exists('content', $item) || empty($item['content']))
             $item['content'] = 'Content extraction failed, please enable reader mode for this entry.';
 
         $item_xml_str = '';
-        if ($g_use_rss_format)
+        if ($g_config['use_rss_format'])
             $item_xml_str = make_rss_item($item);
         else
             $item_xml_str = make_atom_item($item);
@@ -305,9 +280,7 @@
         if (empty($creator))
             sanitize_text($xml_item->author);
         else
-        {
             $author = $creator[0][0];
-        }
 
         return [
             'url' => $xml_item->guid,
@@ -347,7 +320,7 @@
             // Detect old feed file format
             $is_rss = $old_feed_xml->getName() == 'rss';
 
-            // read into array of internal items
+            // Read into array of internal items
             if ($is_rss)
             {
                 $old_feed_xml->registerXPATHNamespace('dc', 'http://purl.org/dc/elements/1.1/');
@@ -372,17 +345,17 @@
     // Write XML data to feed file
     function write_feed_file($param_id, $items)
     {
-        global $g_dir_feeds, $g_use_rss_format;
+        global $g_config;
 
         // Check for subs dir
-        if (!is_dir($g_dir_feeds))
-            mkdir($g_dir_feeds);
+        if (!is_dir($g_config['dir_feeds']))
+            mkdir($g_config['dir_feeds']);
 
         $feed_xml = make_feed($param_id);
         
         // Re-attach
         foreach($items as $item)
-            sxml_attach($g_use_rss_format ? $feed_xml->channel : $feed_xml, make_feed_item($item));
+            sxml_attach($g_config['use_rss_format'] ? $feed_xml->channel : $feed_xml, make_feed_item($item));
 
         // Write formatted xml to feed file
         $local_feed_file = get_local_feed_file($param_id);
@@ -498,11 +471,11 @@
     // Add stored article item to array of items if a personal feed
     function add_item($items, $item)
     {
-        global $g_max_items;
+        global $g_config;
 
         // Check max item count, remove anything beyond
         $c = count($items);
-        while ($c >= $g_max_items)
+        while ($c >= $g_config['max_items'])
         {
             unset($items[$c-1]);
             $c--;
@@ -554,8 +527,8 @@
     // Count number of feeds in feed directory
     function count_feeds()
     {
-        global $g_dir_feeds;
-        $filecount = count(glob($g_dir_feeds . '/*.xml'));
+        global $g_config;
+        $filecount = count(glob($g_config['dir_feeds'] . '/*.xml'));
         return $filecount;
     }
 
@@ -569,10 +542,10 @@
     // Go through feeds directory and clean up likely abandoned feed files
     function run_maintenance($is_dry_run)
     {
-        global $g_dir_feeds, $g_delete_abandoned_after, $g_delete_bogus_after;
+        global $g_config;
 
         $num_removed = 0;
-        $dir = new DirectoryIterator($g_dir_feeds);
+        $dir = new DirectoryIterator($g_config['dir_feeds']);
         $current_time = time();
 
         $abandoned_feeds = array();
@@ -586,11 +559,11 @@
             $feed_file = $fileinfo->getPathname();
 
             // Delete abandoned files older than $g_delete_abandoned_after
-            if ($age > $g_delete_abandoned_after)
+            if ($age > $g_config['delete_abandoned_after'])
                 $abandoned_feeds[] = $feed_id;
 
             // These are likely files created by accident (max one entry)
-            else if ($age > $g_delete_bogus_after)
+            else if ($age > $g_config['delete_bogus_after'])
             {
                 $items = read_feed_file($feed_id);
                 if (count($items) <= 1)
@@ -633,7 +606,7 @@
     // Print message with tools for RSS feed management and instance information
     function show_footer($param_id)
     {
-        global $g_use_rss_format, $g_extract_content, $g_max_items, $g_instance_contact, $g_custom_xslt;
+        global $g_config;
 
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
@@ -653,7 +626,7 @@
 
                 <h2>Tools</h2>
                 <p>
-                    <a href="' . ($g_custom_xslt === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
+                    <a href="' . ($g_config['custom_xslt'] === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
                     <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>, 
                     <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
                     <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple Shortcut</a>
@@ -694,10 +667,10 @@
             <h2>Instance Info</h2>
             <p>
                 # of hosted feeds: ' . count_feeds() . '<br>
-                Full-text extraction: ' . ($g_extract_content ? 'Enabled' : 'Disabled') . '<br>
-                Max items per feed: ' . $g_max_items . '<br>
-                Feed format: ' . ($g_use_rss_format ? 'RSS 2.0' : 'Atom') . '<br>' .
-                ((!empty($g_instance_contact)) ? 'Contact: ' . $g_instance_contact : '') . '
+                Full-text extraction: ' . ($g_config['extract_content'] ? 'Enabled' : 'Disabled') . '<br>
+                Max items per feed: ' . $g_config['max_items'] . '<br>
+                Feed format: ' . ($g_config['use_rss_format'] ? 'RSS 2.0' : 'Atom') . '<br>' .
+                ((!empty($g_config['instance_contact'])) ? 'Contact: ' . $g_config['instance_contact'] : '') . '
             </p>
             ' . ((!empty($param_id)) ? '<p><a href="' . $feed_url . '"><svg xmlns="http://www.w3.org/2000/svg" style="width: 2em" fill="currentColor" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"></path><path d="M5.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-3-8.5a1 1 0 0 1 1-1c5.523 0 10 4.477 10 10a1 1 0 1 1-2 0 8 8 0 0 0-8-8 1 1 0 0 1-1-1m0 4a1 1 0 0 1 1-1 6 6 0 0 1 6 6 1 1 0 1 1-2 0 4 4 0 0 0-4-4 1 1 0 0 1-1-1"></path></svg></a></p>': '') . '
         </section>');
@@ -706,11 +679,11 @@
     // Print header with personal urls
     function show_header($param_id)
     {
-        global $g_url_librarian, $g_logo;
+        global $g_url_librarian, $g_config;
 
         print('
         <section>
-            <a href="' . $g_url_librarian . ((!empty($param_id)) ? '?id=' . $param_id : '') . '"><img alt="" src="' . $g_logo . '"></a>
+            <a href="' . $g_url_librarian . ((!empty($param_id)) ? '?id=' . $param_id : '') . '"><img alt="" src="' . $g_config['logo'] . '"></a>
             <h1>RSS-Librarian' . ((!empty($param_id)) ? '(' . is_admin($param_id) ? 'admin' : substr($param_id, 0, 4) . ')': '') . '</h1>
             <h3>"Knoweldge is power, store it well."</h3>
             <h3>
@@ -729,9 +702,9 @@
     }
 
     // Print main interface
-    function show_interface($param_id, $param_url)
+    function show_interface($param_id, $param_url, $param_delete)
     {
-        global $g_url_librarian, $g_dir_feeds;
+        global $g_url_librarian, $g_config;
 
         // Adding URL for the first time, make sure user has saved their personal URLs!
         if (empty($param_id) && !empty($param_url))
@@ -796,7 +769,7 @@
             else if (!empty($param_url))
             {
                 // iterate over all feeds
-                $feeds = glob($g_dir_feeds . '/*.xml');
+                $feeds = glob($g_config['dir_feeds'] . '/*.xml');
                 foreach($feeds as $f)
                 {
                     $feed_id = basename($f, '.xml');
@@ -859,12 +832,12 @@
     <head>
         <title>RSS-Librarian</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <link rel="shortcut icon" href="<?php print($g_icon); ?>">
+        <link rel="shortcut icon" href="<?php print($g_config['icon']); ?>">
         <?php if (!is_admin($param_id) && !empty($param_id)) {
-            print('<link rel="alternate" type="application/' . (($g_use_rss_format) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
+            print('<link rel="alternate" type="application/' . (($g_config['use_rss_format']) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
         } ?>
 
-        <?php if ($g_custom_css === '') { ?>
+        <?php if ($g_config['custom_css'] === '') { ?>
         <style>
             html {
                 font-family: monospace;
@@ -960,13 +933,13 @@
             }
         </style>
         <?php } else { ?>
-        <link rel="stylesheet" type="text/css" href="<?php print($g_custom_css); ?>">
+        <link rel="stylesheet" type="text/css" href="<?php print($g_config['custom_css']); ?>">
         <?php } ?>
     </head>
     <body>
         <?php 
         show_header($param_id);
-        show_interface($param_id, $param_url);
+        show_interface($param_id, $param_url, $param_delete);
         show_footer($param_id);
         ?>
     </body>
