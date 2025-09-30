@@ -1,9 +1,7 @@
 <?php
     /*
      * RSS-Librarian - A read-it-later service for RSS purists
-     *
      * https://github.com/thefranke/rss-librarian
-     *
      */
 
     use fivefilters\Readability\Readability;
@@ -70,7 +68,6 @@
         
         $json = @file_get_contents($g_config_file);
 
-        // Read back already set variables
         if (!empty($json))
         {
             $data = json_decode($json);
@@ -225,7 +222,6 @@
         $ts_updated = time();
 
         $feed_xml_str = '';
-
         if ($g_use_rss_format)
             $feed_xml_str = make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
         else 
@@ -234,14 +230,12 @@
         return simplexml_load_string($feed_xml_str);
     }
 
-    // Creates an Atom feed entry
-    // https://validator.w3.org/feed/docs/atom.html
+    // Creates an Atom feed entry: https://validator.w3.org/feed/docs/atom.html
     function make_atom_item($item)
     {
         $datef = date('Y-m-d\TH:i:s\Z', $item['date']);
         
         $author_element = '';
-
         if (!empty($item['author']))
             $author_element = '<author><name>' . sanitize_text($item['author']) . '</name></author>';
         
@@ -257,9 +251,7 @@
         '</entry>';
     }
 
-    // Creates an RSS feed entry
-    // https://validator.w3.org/feed/docs/rss2.html
-    // http://purl.org/dc/elements/1.1/
+    // Creates an RSS feed entry: https://validator.w3.org/feed/docs/rss2.html, http://purl.org/dc/elements/1.1/
     function make_rss_item($item) 
     {
         $author_element = '';
@@ -309,9 +301,7 @@
     function read_rss_item($xml_item)
     {
         $author = '';
-        
         $creator = $xml_item->xpath('dc:creator');
-        
         if (empty($creator))
             sanitize_text($xml_item->author);
         else
@@ -346,7 +336,6 @@
         global $g_url_librarian;
 
         $local_feed_file = get_local_feed_file($param_id);
-
         $items_sorted = array();
 
         // Try to open local subscriptions and copy items over
@@ -410,7 +399,6 @@
         $autoload = __DIR__ . '/vendor/autoload.php';
 
         $item = [];
-
         if (file_exists($autoload))
         {
             require $autoload;
@@ -542,8 +530,7 @@
                 return false;
         }
 
-        $items = add_item($items, extract_content($param_url));
-        
+        $items = add_item($items, extract_content($param_url));  
         write_feed_file($param_id, $items);
         return true;
     }
@@ -582,17 +569,13 @@
     // Go through feeds directory and clean up likely abandoned feed files
     function run_maintenance($is_dry_run)
     {
-        global $g_dir_feeds;
-        global $g_delete_abandoned_after;
-        global $g_delete_bogus_after;
+        global $g_dir_feeds, $g_delete_abandoned_after, $g_delete_bogus_after;
 
         $num_removed = 0;
-
         $dir = new DirectoryIterator($g_dir_feeds);
         $current_time = time();
 
         $abandoned_feeds = array();
-        
         foreach ($dir as $fileinfo) 
         {
             if ($fileinfo->isDot() || $fileinfo->getExtension() != "xml") 
@@ -622,8 +605,7 @@
         return $abandoned_feeds;
     }
 
-    // Display a list of URLs that are saved in the feed 
-    // already and allow users to remove items
+    // Display a list of URLs that are stored in a personal feed and allow removal of items
     function show_saved_urls($param_id)
     {
         if (empty($param_id))
@@ -651,8 +633,7 @@
     // Print message with tools for RSS feed management and instance information
     function show_footer($param_id)
     {
-        global $g_use_rss_format, $g_extract_content, $g_max_items, 
-               $g_instance_contact, $g_custom_xslt;
+        global $g_use_rss_format, $g_extract_content, $g_max_items, $g_instance_contact, $g_custom_xslt;
 
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
@@ -879,11 +860,9 @@
         <title>RSS-Librarian</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <link rel="shortcut icon" href="<?php print($g_icon); ?>">
-        <?php
-        // User exists?
-        if (!is_admin($param_id) && !empty($param_id))
+        <?php if (!is_admin($param_id) && !empty($param_id)) {
             print('<link rel="alternate" type="application/' . (($g_use_rss_format) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
-        ?>
+        } ?>
 
         <?php if ($g_custom_css === '') { ?>
         <style>
