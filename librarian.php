@@ -612,7 +612,7 @@
         $feed_url = get_feed_url($param_id);
 
         print('
-        <section>');
+        <footer>');
 
         if (!is_admin($param_id))
         {
@@ -673,7 +673,7 @@
                 ((!empty($g_config['instance_contact'])) ? 'Contact: ' . $g_config['instance_contact'] : '') . '
             </p>
             ' . ((!empty($param_id)) ? '<p><a href="' . $feed_url . '"><svg xmlns="http://www.w3.org/2000/svg" style="width: 2em" fill="currentColor" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"></path><path d="M5.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-3-8.5a1 1 0 0 1 1-1c5.523 0 10 4.477 10 10a1 1 0 1 1-2 0 8 8 0 0 0-8-8 1 1 0 0 1-1-1m0 4a1 1 0 0 1 1-1 6 6 0 0 1 6 6 1 1 0 1 1-2 0 4 4 0 0 0-4-4 1 1 0 0 1-1-1"></path></svg></a></p>': '') . '
-        </section>');
+        </footer>');
     }
 
     // Print header with personal urls
@@ -682,7 +682,7 @@
         global $g_url_librarian, $g_config;
 
         print('
-        <section>
+        <header>
             <a href="' . $g_url_librarian . ((!empty($param_id)) ? '?id=' . $param_id : '') . '"><img alt="" src="' . $g_config['logo'] . '"></a>
             <h1>RSS-Librarian' . ((!empty($param_id)) ? (' (' . (is_admin($param_id) ? 'admin' : substr($param_id, 0, 4)) . ')') : '') . '</h1>
             <h3>"Knoweldge is power, store it well."</h3>
@@ -697,7 +697,7 @@
 
         print('
             </h3>
-        </section>
+        </header>
         ');
     }
 
@@ -868,7 +868,7 @@
             h3 {
                 font-size: 1.2em;
             }
-            section {
+            section, header, footer {
                 margin: auto;
                 width: 50%;
                 border-top: dashed 1px gray;
@@ -877,12 +877,12 @@
                 text-align: center;
                 overflow: auto;
             }
-            section:first-child {
+            header {
                 text-align: center;
                 border: 0px;
                 padding-top: 50pt;
             }
-            section:first-child img {
+            header img {
                 border-radius: 10%;
                 width: 10em;
             }
