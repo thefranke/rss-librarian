@@ -927,7 +927,7 @@
                 }
             }
             @media only screen and (orientation: portrait) { 
-                section {
+                section, header, footer {
                     width: 95%;
                 }
             }
