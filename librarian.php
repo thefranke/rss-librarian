@@ -711,13 +711,16 @@
         {
             // Create new user id
             $param_id = make_id();
+            $personal_url = get_personal_url($param_id);
+            $feed_url = get_feed_url($param_id);
 
             print('
             <section>
                 <h2>You are about to create a new feed</h2>
-                <p>
-                    Please confirm that you bookmarked the two URLs in "Your Feed" below before continuing!
-                </p>
+                <p>Please <em>confirm</em> that you have bookmarked:</p>
+                <p>Your <a href="' .$personal_url . '">personal URL</a></p>
+                <p>and subscribed with a feed reader to:</p>
+                <p>Your <a href="' .$feed_url . '">personal feed</a></p>
 
                 <form action="' . $g_url_librarian . '">
                     <input type="hidden" id="url" name="url" value="' . $param_url . '">
