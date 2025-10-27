@@ -486,6 +486,29 @@
         return $items;
     }
 
+    // Add a custom article text to a personal feed
+    function add_custom_item($param_id, $message)
+    {
+        global $g_url_librarian;
+        $items = read_feed_file($param_id);
+        $item = [
+            'url' => '',
+            'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d H:m"),
+            'content' => $message,
+            'timestamp' => time(),
+            'author' => 'Admin',
+        ];
+        $items = add_item($items, $item);
+        write_feed_file($param_id, $items);
+    }
+
+    // Log added URL into admin feed
+    function log_url($param_id, $param_url)
+    {
+        global $g_config;
+        add_custom_item($g_config['admin_id'], "User " . $param_id . " added:<br>" . $param_url);
+    }
+
     // Add URL to personal feed
     function add_url($param_id, $param_url)
     {
@@ -505,23 +528,8 @@
 
         $items = add_item($items, extract_content($param_url));  
         write_feed_file($param_id, $items);
+        log_url($param_id, $param_url);
         return true;
-    }
-
-    // Add a custom article text to a personal feed
-    function add_custom_item($param_id, $message)
-    {
-        global $g_url_librarian;
-        $items = read_feed_file($param_id);
-        $item = [
-            'url' => '',
-            'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d H:m"),
-            'content' => $message,
-            'timestamp' => time(),
-            'author' => 'Admin',
-        ];
-        $items = add_item($items, $item);
-        write_feed_file($param_id, $items);
     }
 
     // Count number of feeds in feed directory
@@ -689,7 +697,7 @@
             <h3>
                 [<a href="https://github.com/thefranke/rss-librarian">Github</a>]');
 
-        if (!is_admin($param_id) && !empty($param_id))
+        if (!empty($param_id))
             print('
             [<a href="' . get_personal_url($param_id) . '">Manage</a>] 
             [<a href="' . get_feed_url($param_id) . '">Subscribe</a>]
@@ -836,8 +844,8 @@
         <title>RSS-Librarian</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <link rel="shortcut icon" href="<?php print($g_config['icon']); ?>">
-        <?php if (!is_admin($param_id) && !empty($param_id)) {
-            print('<link rel="alternate" type="application/' . (($g_config['use_rss_format']) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . substr($param_id, 0, 4) . ')" href="' . get_feed_url($param_id) . '">');
+        <?php if (!empty($param_id)) {
+            print('<link rel="alternate" type="application/' . (($g_config['use_rss_format']) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . (is_admin($param_id) ? "admin" : substr($param_id, 0, 4)) . ')" href="' . get_feed_url($param_id) . '">');
         } ?>
 
         <?php if ($g_config['custom_css'] === '') { ?>
