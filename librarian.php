@@ -63,7 +63,6 @@
     function update_configuration()
     {
         global $g_config_file, $g_config;
-        
         $json = @file_get_contents($g_config_file);
 
         if (!empty($json))
@@ -148,7 +147,6 @@
     function make_atom_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
         global $g_url_librarian, $g_config;
-
         return '<?xml version="1.0" encoding="utf-8"?>
             ' . (($g_config['custom_xslt'] !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_config['custom_xslt'] . '" ?>' : '') . '
             <feed xmlns="http://www.w3.org/2005/Atom">
@@ -170,7 +168,6 @@
     function make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated)
     {
         global $g_url_librarian, $g_config;
-
         return '<?xml version="1.0" encoding="utf-8"?>
             ' . (($g_config['custom_xslt'] !== "") ? '<?xml-stylesheet type="text/xsl" href="' . $g_config['custom_xslt'] . '"?>' : '') . '
             <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -189,14 +186,13 @@
     function make_feed($param_id)
     {
         global $g_config, $g_url_librarian;
-
         $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
         $subtitle = 'A read-it-later service for RSS purists';
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
         $ts_updated = time();
-
         $feed_xml_str = '';
+
         if ($g_config['use_rss_format'])
             $feed_xml_str = make_rss_feed($title, $subtitle, $personal_url, $feed_url, $ts_updated);
         else 
@@ -209,8 +205,8 @@
     function make_atom_item($item)
     {
         $datef = date('Y-m-d\TH:i:s\Z', $item['date']);
-        
         $author_element = '';
+
         if (!empty($item['author']))
             $author_element = '<author><name>' . sanitize_text($item['author']) . '</name></author>';
         
@@ -230,7 +226,6 @@
     function make_rss_item($item) 
     {
         $author_element = '';
-
         if (!empty($item['author']))
             $author_element = '<dc:creator>' . $item['author'] . '</dc:creator>';
 
@@ -254,7 +249,6 @@
     function make_feed_item($item)
     {
         global $g_config;
-
         if (!array_key_exists('date', $item) || $item['date'] == 0)
             $item['date'] = time();
 
@@ -307,7 +301,6 @@
     function read_feed_file($param_id)
     {
         global $g_url_librarian;
-
         $local_feed_file = get_local_feed_file($param_id);
         $items_sorted = array();
 
@@ -502,11 +495,11 @@
         write_feed_file($param_id, $items);
     }
 
-    // Log added URL into admin feed
-    function log_url($param_id, $param_url)
+    // Log into admin feed
+    function add_admin_log_item($msg)
     {
         global $g_config;
-        add_custom_item($g_config['admin_id'], "User " . $param_id . " added:<br>" . $param_url);
+        add_custom_item($g_config['admin_id'], $msg);
     }
 
     // Add URL to personal feed
@@ -528,7 +521,6 @@
 
         $items = add_item($items, extract_content($param_url));  
         write_feed_file($param_id, $items);
-        log_url($param_id, $param_url);
         return true;
     }
 
@@ -551,20 +543,23 @@
     function run_maintenance($is_dry_run)
     {
         global $g_config;
-
         $num_removed = 0;
         $dir = new DirectoryIterator($g_config['dir_feeds']);
         $current_time = time();
-
         $abandoned_feeds = array();
+
         foreach ($dir as $fileinfo) 
         {
             if ($fileinfo->isDot() || $fileinfo->getExtension() != "xml") 
                 continue;
             
             $age = $current_time - $fileinfo->getMTime();
-            $feed_id = substr($fileinfo->getBasename(), 0, -4);
             $feed_file = $fileinfo->getPathname();
+            $feed_id = substr($fileinfo->getBasename(), 0, -4);
+
+            // Skip admin feed
+            if ($feed_id == $g_config['admin_id'])
+                continue;
 
             // Delete abandoned files older than $g_delete_abandoned_after
             if ($age > $g_config['delete_abandoned_after'])
@@ -788,10 +783,17 @@
                 }
 
                 print('<section><h2>Message sent to ' . count($feeds) . ' feeds.</h2></section>');
+                add_admin_log_item('Message sent to ' . count($feeds) . ' feeds:<br>' . $param_url);
             }
             else if (!empty($param_delete))
             {
-                print('<section><h2>Cleaned up ' . count(run_maintenance(false)) . ' abandoned feeds</h2></section>');
+                $abandoned_feeds = run_maintenance(false);
+                $num_cleaned = count($abandoned_feeds);
+                if ($num_cleaned > 0)
+                {
+                    print('<section><h2>Cleaned up ' . $num_cleaned . ' abandoned feeds</h2></section>');
+                    add_admin_log_item('Cleaned up abandoned feeds:<br>' . implode('<br>', $abandoned_feeds));
+                }
             }
         }
 
@@ -818,7 +820,10 @@
                 else
                 {
                     if(add_url($param_id, $param_url))
+                    {
                         print('<p><a href="' . $param_url . '">' . $param_url . '</a> added</p>');
+                        add_admin_log_item("User " . $param_id . " added:<br>" . $param_url);
+                    }
                     else
                         print('<p>URL already added!</p>');
                 }
