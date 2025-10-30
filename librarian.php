@@ -113,6 +113,11 @@
         return $s;
     }
 
+    function get_title($param_id)
+    {
+        return 'RSS-Librarian' . ((!empty($param_id)) ? (' (' . (is_admin($param_id) ? 'admin' : substr($param_id, 0, 4)) . ')') : '');
+    }
+
     // Produce path for local feed file
     function get_local_feed_file($param_id)
     {
@@ -186,7 +191,7 @@
     function make_feed($param_id)
     {
         global $g_config, $g_url_librarian;
-        $title = 'RSS-Librarian (' . substr($param_id, 0, 4) . ')';
+        $title = get_title($param_id);
         $subtitle = 'A read-it-later service for RSS purists';
         $personal_url = get_personal_url($param_id);
         $feed_url = get_feed_url($param_id);
@@ -687,7 +692,7 @@
         print('
         <header>
             <a href="' . ((!empty($param_id)) ? get_personal_url($param_id) : $g_url_librarian) . '"><img alt="" src="' . $g_config['logo'] . '"></a>
-            <h1>RSS-Librarian' . ((!empty($param_id)) ? (' (' . (is_admin($param_id) ? 'admin' : substr($param_id, 0, 4)) . ')') : '') . '</h1>
+            <h1>' . get_title($param_id) . '</h1>
             <h3>"Knoweldge is power, store it well."</h3>
             <h3>
                 [<a href="https://github.com/thefranke/rss-librarian">Github</a>]');
@@ -846,11 +851,11 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>RSS-Librarian</title>
+        <title><?php print(get_title($param_id)) ?></title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <link rel="shortcut icon" href="<?php print($g_config['icon']); ?>">
         <?php if (!empty($param_id)) {
-            print('<link rel="alternate" type="application/' . (($g_config['use_rss_format']) ? 'rss+xml' : 'atom+xml') . '" title="RSS Librarian (' . (is_admin($param_id) ? "admin" : substr($param_id, 0, 4)) . ')" href="' . get_feed_url($param_id) . '">');
+            print('<link rel="alternate" type="application/' . (($g_config['use_rss_format']) ? 'rss+xml' : 'atom+xml') . '" title="' . get_title($param_id) . '" href="' . get_feed_url($param_id) . '">');
         } ?>
 
         <?php if ($g_config['custom_css'] === '') { ?>
