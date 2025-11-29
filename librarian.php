@@ -389,7 +389,7 @@
         {
             require $autoload;
 
-            $html = fetch_url($html);
+            $html = fetch_url($url);
 
             // Tidy up HTML
             if (function_exists('tidy_parse_string'))
