@@ -361,10 +361,18 @@
     // Extract content by piping through Readability.php and create an internal feed item
     function extract_content($url)
     {
-        $autoload = __DIR__ . '/vendor/autoload.php';
-
         $item = [];
-        if (file_exists($autoload))
+
+        $customextractor = __DIR__ . '/customextractor.php';
+        if (empty($item) && file_exists($customextractor))
+        {
+            require $customextractor;
+            if (function_exists("extract_content_custom"))
+                $item = extract_content_custom($url);
+        }
+
+        $autoload = __DIR__ . '/vendor/autoload.php';
+        if (empty($item) && file_exists($autoload))
         {
             require $autoload;
 
