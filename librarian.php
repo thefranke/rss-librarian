@@ -349,6 +349,13 @@
         file_put_contents($local_feed_file, $dom->saveXML());
     }
 
+    function get_opengraph_tags($html)
+    {
+        if (preg_match_all('/<meta property="og:([^"]+)"\s*content="([^"]*)"/i', $html, $matches))
+            return array_combine($matches[1], $matches[2]);
+        return [];
+    }
+
     // Fetch content of a URL
     function fetch_url($url)
     {
@@ -440,10 +447,7 @@
     function extract_content_metatags($url)
     {
         $html = fetch_url($url);
-        $meta = [];
-        
-        if (preg_match_all('/<meta property="og:([^"]+)"\s*content="([^"]*)"/i', $html, $matches))
-            $meta = array_combine($matches[1], $matches[2]);
+        $meta = get_opengraph_tags($html);
         
         return [
             'title' => $meta['title'] ?? '',
