@@ -358,6 +358,7 @@
         file_put_contents($local_feed_file, $dom->saveXML());
     }
 
+    // Fetch content of a URL
     function fetch_url($url)
     {
         // Pretend to be a browser to have an increased success rate of
@@ -371,21 +372,24 @@
         return $html;
     }
 
-    // Extract content by piping through Readability.php and create an internal feed item
-    function extract_content($url)
+    // Local custom extraction path
+    function extract_content_custom($url)
     {
-        $item = [];
-
         $customextractor = __DIR__ . '/customextractor.php';
-        if (empty($item) && file_exists($customextractor))
+        if (file_exists($customextractor))
         {
             require $customextractor;
-            if (function_exists("extract_content_custom"))
-                $item = extract_content_custom($url);
+            if (function_exists("customextractor"))
+                return customextractor($url);
         }
+        return [];
+    }
 
+    // Local Readability.php extraction path
+    function extract_content_local_readability($url)
+    {
         $autoload = __DIR__ . '/vendor/autoload.php';
-        if (empty($item) && file_exists($autoload))
+        if (file_exists($autoload))
         {
             require $autoload;
 
@@ -408,38 +412,47 @@
             {
                 $readability->parse($html);
 
-                $item = [
-                    'url' => $url,
+                return [
                     'title' => $readability->getTitle(),
                     'content' => $readability->getContent(),
                     'author' => $readability->getAuthor(),
                 ];
             }
             catch (ParseException $e)
-            {
-                // leave for second try at FiveFilters
-            }
+            {}
         }
+        return [];
+    }
 
-        // No local Readability.php installed or extracting data failed? Use FiveFilters
-        if (empty($item))
-        {
-            $feed_item = fetch_url('https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url));
+    // Remote Fivefilters extraction path
+    function extract_content_fivefilters($url)
+    {
+        $feed_item = fetch_url('https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url));
+        if (empty($feed_item)) return [];
 
-            // error handling remove everything until first <
-            $start = strpos($feed_item, '<');
-            $feed_item = substr($feed_item, $start);
-            $xml = simplexml_load_string($feed_item);
-            $ff_item = $xml->channel->item[0];
+        // error handling remove everything until first <
+        $start = strpos($feed_item, '<');
+        $feed_item = substr($feed_item, $start);
+        $xml = simplexml_load_string($feed_item);
+        $ff_item = $xml->channel->item[0];
 
-            $item = [
-                'url' => $url,
-                'title' => $ff_item->title,
-                'content' => $ff_item->description,
-                'author' => '',
-            ];
-        }
+        return [
+            'title' => $ff_item->title,
+            'content' => $ff_item->description,
+            'author' => '',
+        ];
+    }
 
+    // Extract content using the first successful method, otherwise just return URL
+    function extract_content($url)
+    {
+        $item = [];
+
+        if (empty($item)) $item = extract_content_custom($url);
+        if (empty($item)) $item = extract_content_local_readability($url);
+        if (empty($item)) $item = extract_content_fivefilters($url);
+        
+        $item['url'] = $url;
         return $item;
     }
 
