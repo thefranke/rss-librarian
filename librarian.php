@@ -132,12 +132,6 @@
         return $g_url_base . '/' . get_local_feed_file($param_id);
     }
 
-    // Check if feed file exists
-    function feed_file_exists($param_id)
-    {
-        return file_exists(get_local_feed_file($param_id));
-    }
-
     // Helper to attach new XML element to existing one
     function sxml_attach(SimpleXMLElement $to, SimpleXMLElement $from)
     {
