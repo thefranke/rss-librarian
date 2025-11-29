@@ -436,6 +436,22 @@
         ];
     }
 
+    // Search HTML for meta tags
+    function extract_content_metatags($url)
+    {
+        $html = fetch_url($url);
+        $meta = [];
+        
+        if (preg_match_all('/<meta property="og:([^"]+)"\s*content="([^"]*)"/i', $html, $matches))
+            $meta = array_combine($matches[1], $matches[2]);
+        
+        return [
+            'title' => $meta['title'] ?? '',
+            'content' => $meta['description'] ?? '',
+            'author' => $meta['site_name'] ?? '',
+        ];
+    }
+
     // Extract content using the first successful method, otherwise just return URL
     function extract_content($url)
     {
@@ -446,13 +462,14 @@
         if (empty($item)) $item = extract_content_custom($url);
         if (empty($item)) $item = extract_content_local_readability($url);
         if (empty($item)) $item = extract_content_fivefilters($url);
+        if (empty($item)) $item = extract_content_metatags($url);
         
         $item['url'] = $url;
         $item['date'] = time();
         $item['title'] = empty($item['title']) ? $url : $item['title'];
 
         if (!$g_config['extract_content'] || empty($item['content']))
-            $item['content'] = 'No Content available, please enable reader mode for this entry.';
+            $item['content'] = 'No content available, please enable reader mode for this entry.';
 
         return $item;
     }
