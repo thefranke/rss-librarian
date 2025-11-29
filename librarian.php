@@ -358,6 +358,19 @@
         file_put_contents($local_feed_file, $dom->saveXML());
     }
 
+    function fetch_url($url)
+    {
+        // Pretend to be a browser to have an increased success rate of
+        // downloading the contents compared to a simple `file_get_contents`.
+        ini_set('user_agent','Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $html = curl_exec($ch);
+        curl_close($ch);
+        return $html;
+    }
+
     // Extract content by piping through Readability.php and create an internal feed item
     function extract_content($url)
     {
@@ -376,16 +389,7 @@
         {
             require $autoload;
 
-            // Pretend to be a browser to have an increased success rate of
-            // downloading the contents compared to a simple `file_get_contents`.
-            ini_set('user_agent','Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
-
-            // Fetch HTML content
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $html = curl_exec($ch);
-            curl_close($ch);
+            $html = fetch_url($html);
 
             // Tidy up HTML
             if (function_exists('tidy_parse_string'))
@@ -420,9 +424,7 @@
         // No local Readability.php installed or extracting data failed? Use FiveFilters
         if (empty($item))
         {
-            $feed_url = 'https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url);
-
-            $feed_item = file_get_contents($feed_url);
+            $feed_item = fetch_url('https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url));
 
             // error handling remove everything until first <
             $start = strpos($feed_item, '<');
