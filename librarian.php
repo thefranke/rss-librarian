@@ -436,6 +436,8 @@
         $xml = simplexml_load_string($feed_item);
         $ff_item = $xml->channel->item[0];
 
+        if (str_contains($ff_item->description, 'unable to retrieve full-text content')) return [];
+
         return [
             'title' => $ff_item->title,
             'content' => $ff_item->description,
