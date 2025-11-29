@@ -83,13 +83,11 @@
     function fetch_param($param)
     {
         $params = $_GET;
-
         foreach($params as $k => $v)
         {
             if ($k == $param)
                 return $v;
         }
-
         return '';
     }
 
@@ -203,7 +201,7 @@
     // Creates an Atom feed entry: https://validator.w3.org/feed/docs/atom.html
     function make_atom_item($item)
     {
-        $datef = date('Y-m-d\TH:i:s\Z', $item['date']);
+        $datef = date('Y-m-d\TH:i:s\Z', $item['date'] ?? time());
         $author_element = '';
 
         if (!empty($item['author']))
@@ -240,7 +238,7 @@
             <guid isPermaLink="true">' . $item['url'] .'</guid>
             <description>' . sanitize_text($item['content']) . '</description>
             ' . $author_element . '
-            <pubDate>' . date('D, d M Y H:i:s O', $item['date']) . '</pubDate>
+            <pubDate>' . date('D, d M Y H:i:s O', $item['date'] ?? time()) . '</pubDate>
         </item>';
     }
 
@@ -248,13 +246,6 @@
     function make_feed_item($item)
     {
         global $g_config;
-        if (!array_key_exists('date', $item) || $item['date'] == 0)
-            $item['date'] = time();
-
-        if (!$g_config['extract_content'])
-            $item['content'] = 'Content extraction disabled or failed, please enable reader mode for this entry.';
-        else if (!array_key_exists('content', $item) || empty($item['content']))
-            $item['content'] = 'Content extraction failed, please enable reader mode for this entry.';
 
         $item_xml_str = '';
         if ($g_config['use_rss_format'])
@@ -448,6 +439,8 @@
     // Extract content using the first successful method, otherwise just return URL
     function extract_content($url)
     {
+        global $g_config;
+
         $item = [];
 
         if (empty($item)) $item = extract_content_custom($url);
@@ -455,6 +448,12 @@
         if (empty($item)) $item = extract_content_fivefilters($url);
         
         $item['url'] = $url;
+        $item['date'] = time();
+        $item['title'] = empty($item['title']) ? $url : $item['title'];
+
+        if (!$g_config['extract_content'] || empty($item['content']))
+            $item['content'] = 'No Content available, please enable reader mode for this entry.';
+
         return $item;
     }
 
@@ -619,11 +618,8 @@
             <ol>');
 
         foreach($items as $item)
-        {
-            $title = (!empty($item['title'])) ? $item['title'] : $item['url'];
             print('
-                <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item['url']). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item['url']. '" target="_blank">' . $title . '</a></li>');
-        }
+                <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item['url']). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item['url']. '" target="_blank">' . $item['title'] . '</a></li>');
 
         print('
             </ol>
