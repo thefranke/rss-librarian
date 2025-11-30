@@ -359,12 +359,18 @@
     // Fetch content of a URL
     function fetch_url($url)
     {
-        // Pretend to be a browser to have an increased success rate of
-        // downloading the contents compared to a simple `file_get_contents`.
-        ini_set('user_agent','Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13');
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $cookie_file = sys_get_temp_dir() . '/rsslib_temp_cookies.txt';
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 10,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080311 Firefox/2.0.0.13',
+            CURLOPT_ENCODING       => '',
+            CURLOPT_COOKIEFILE     => $cookie_file,
+            CURLOPT_COOKIEJAR      => $cookie_file,
+            CURLOPT_TIMEOUT        => 15,
+        ]);
         $html = curl_exec($ch);
         curl_close($ch);
         return $html;
