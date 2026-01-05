@@ -71,6 +71,8 @@
             foreach(array_keys($g_config) as $k)
                 if (property_exists($data, $k)) 
                     $g_config[$k] = $data->$k;
+
+            return;
         }
 
         if (empty($g_config['admin_id']))
