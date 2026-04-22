@@ -374,7 +374,6 @@
             CURLOPT_TIMEOUT        => 15,
         ]);
         $html = curl_exec($ch);
-        curl_close($ch);
         return $html;
     }
 
