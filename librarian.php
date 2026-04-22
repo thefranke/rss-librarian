@@ -278,7 +278,7 @@
         ];
     }
 
-    // Read RSS XML item and convert to internal item format
+    // Read Atom XML item and convert to internal item format
     function read_atom_item($xml_item)
     {
         return [
