@@ -113,6 +113,7 @@
         return $s;
     }
 
+    // Create the title of the RSS-Librarian instance
     function get_title($param_id)
     {
         return 'RSS-Librarian' . ((!empty($param_id)) ? (' (' . (is_admin($param_id) ? 'admin' : substr($param_id, 0, 4)) . ')') : '');
@@ -351,6 +352,7 @@
         file_put_contents($local_feed_file, $dom->saveXML());
     }
 
+    // Fetch header of HTML containing any OpenGraph tags to use for meta information
     function get_opengraph_tags($html)
     {
         if (preg_match_all('/<meta property="og:([^"]+)"\s*content="([^"]*)"/i', $html, $matches))
