@@ -386,8 +386,8 @@
         if (file_exists($customextractor))
         {
             require $customextractor;
-            if (function_exists("customextractor"))
-                return customextractor($url);
+            if (function_exists('custom_extractor'))
+                return custom_extractor($url);
         }
         return [];
     }
