@@ -205,36 +205,27 @@
     function make_atom_item($item)
     {
         $datef = date('Y-m-d\TH:i:s\Z', $item['date'] ?? time());
-        $author_element = '';
-
-        if (!empty($item['author']))
-            $author_element = '<author><name>' . sanitize_text($item['author']) . '</name></author>';
-        
+        $author_element = !empty($item['author']) ? '<author><name>' . sanitize_text($item['author']) . '</name></author>' : '';
+        $enclosure_element = !empty($item['enclosure']) ? '<link rel="enclosure" href="' .$item['enclosure'][0]. '" type="' .$item['enclosure'][1]. '" length="' .$item['enclosure'][2]. '" />' : '';
         return '<entry>
             <title>' . sanitize_text($item['title']) . '</title>
             <id>' . $item['url'] .'</id>
             <published>' . $datef . '</published>
-            <updated>' . $datef . '</updated>
-            <content type="html">'
+            <updated>' . $datef . '</updated>'
+            . $author_element .
+            '<content type="html">'
                 . sanitize_text($item['content']) .
             '</content>'
-            . $author_element .
+            . $enclosure_element .
         '</entry>';
     }
 
     // Creates an RSS feed entry: https://validator.w3.org/feed/docs/rss2.html, http://purl.org/dc/elements/1.1/
     function make_rss_item($item) 
     {
-        $author_element = '';
-        if (!empty($item['author']))
-            $author_element = '<dc:creator>' . $item['author'] . '</dc:creator>';
-
-        $title_element = '';
-        if (!empty($item['title']))
-        {
-            $title_element = '<title>' . sanitize_text($item['title']) . '</title>';
-        }
-
+        $author_element = !empty($item['author']) ? '<dc:creator>' . $item['author'] . '</dc:creator>' : '';
+        $title_element = !empty($item['title']) ? '<title>' . sanitize_text($item['title']) . '</title>' : '';
+        $enclosure_element = !empty($item['enclosure']) ? '<enclosure url="' . $item['enclosure'][0] . '" type="' . $item['enclosure'][1] . '" length="' .$item['enclosure'][2]. '" />' : '';
         return '<item xmlns:dc="http://purl.org/dc/elements/1.1/">
             <link>' . $item['url'] . '</link>
             ' . $title_element . '
@@ -242,6 +233,7 @@
             <description>' . sanitize_text($item['content']) . '</description>
             ' . $author_element . '
             <pubDate>' . date('D, d M Y H:i:s O', $item['date'] ?? time()) . '</pubDate>
+            ' . $enclosure_element . '
         </item>';
     }
 
@@ -262,31 +254,30 @@
     // Read RSS XML item and convert to internal item format
     function read_rss_item($xml_item)
     {
-        $author = '';
         $creator = $xml_item->xpath('dc:creator');
-        if (empty($creator))
-            sanitize_text($xml_item->author);
-        else
-            $author = $creator[0][0];
-
+        $author = empty($creator) ? sanitize_text($xml_item->author) : sanitize_text($creator[0][0]);
+        $enclosure = empty($xml_item->enclosure) ? null : [$xml_item->enclosure->url, $xml_item->enclosure->type, $xml_item->enclosure->length];
         return [
             'url' => $xml_item->guid,
             'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->description,
             'date' => strtotime($xml_item->pubDate),
             'author' => $author,
+            'enclosure' => $enclosure,
         ];
     }
 
     // Read Atom XML item and convert to internal item format
     function read_atom_item($xml_item)
     {
+        $enclosure = empty($xml_item->link) ? null : [$xml_item->link->url, $xml_item->link->type];
         return [
             'url' => $xml_item->id,
             'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->content,
             'date' => strtotime($xml_item->published),
             'author' => sanitize_text($xml_item->author->name),
+            'enclosure' => $enclosure,
         ];
     }
 
