@@ -241,13 +241,7 @@
     function make_feed_item($item)
     {
         global $g_config;
-
-        $item_xml_str = '';
-        if ($g_config['use_rss_format'])
-            $item_xml_str = make_rss_item($item);
-        else
-            $item_xml_str = make_atom_item($item);
-
+        $item_xml_str = ($g_config['use_rss_format']) ? make_rss_item($item) : make_atom_item($item);
         return simplexml_load_string($item_xml_str);
     }
 
@@ -373,7 +367,7 @@
     // Local custom extraction path
     function extract_content_custom($url)
     {
-        $customextractor = __DIR__ . '/customextractor.php';
+        $customextractor = __DIR__ . '/custom_extractor.php';
         if (file_exists($customextractor))
         {
             require $customextractor;
@@ -563,7 +557,7 @@
                 return false;
         }
 
-        $items = add_item($items, extract_content($param_url));  
+        $items = add_item($items, extract_content($param_url));
         write_feed_file($param_id, $items);
         return true;
     }
