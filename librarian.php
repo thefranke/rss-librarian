@@ -206,10 +206,10 @@
     {
         $datef = date('Y-m-d\TH:i:s\Z', $item['date'] ?? time());
         $author_element = !empty($item['author']) ? '<author><name>' . sanitize_text($item['author']) . '</name></author>' : '';
-        $enclosure_element = !empty($item['enclosure']) ? '<link rel="enclosure" href="' .$item['enclosure'][0]. '" type="' .$item['enclosure'][1]. '" length="' .$item['enclosure'][2]. '" />' : '';
+        $enclosure_element = !empty($item['enclosure']) ? '<link rel="enclosure" href="' .sanitize_text($item['enclosure'][0]). '" type="' .$item['enclosure'][1]. '" length="' .$item['enclosure'][2]. '" />' : '';
         return '<entry>
             <title>' . sanitize_text($item['title']) . '</title>
-            <id>' . $item['url'] .'</id>
+            <id>' . sanitize_text($item['url']) .'</id>
             <published>' . $datef . '</published>
             <updated>' . $datef . '</updated>'
             . $author_element .
@@ -225,11 +225,11 @@
     {
         $author_element = !empty($item['author']) ? '<dc:creator>' . $item['author'] . '</dc:creator>' : '';
         $title_element = !empty($item['title']) ? '<title>' . sanitize_text($item['title']) . '</title>' : '';
-        $enclosure_element = !empty($item['enclosure']) ? '<enclosure url="' . $item['enclosure'][0] . '" type="' . $item['enclosure'][1] . '" length="' .$item['enclosure'][2]. '" />' : '';
+        $enclosure_element = !empty($item['enclosure']) ? '<enclosure url="' . sanitize_text($item['enclosure'][0]) . '" type="' . $item['enclosure'][1] . '" length="' .$item['enclosure'][2]. '" />' : '';
         return '<item xmlns:dc="http://purl.org/dc/elements/1.1/">
-            <link>' . $item['url'] . '</link>
+            <link>' . sanitize_text($item['url']) . '</link>
             ' . $title_element . '
-            <guid isPermaLink="true">' . $item['url'] .'</guid>
+            <guid isPermaLink="true">' . sanitize_text($item['url']) .'</guid>
             <description>' . sanitize_text($item['content']) . '</description>
             ' . $author_element . '
             <pubDate>' . date('D, d M Y H:i:s O', $item['date'] ?? time()) . '</pubDate>
