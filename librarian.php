@@ -81,18 +81,6 @@
         file_put_contents($g_config_file, json_encode($g_config, JSON_PRETTY_PRINT));
     }
 
-    // Fetch parameters given to librarian
-    function fetch_param($param)
-    {
-        $params = $_GET;
-        foreach($params as $k => $v)
-        {
-            if ($k == $param)
-                return $v;
-        }
-        return '';
-    }
-
     // Sanitize a string to remove any invalid characters
     function sanitize_text($s)
     {
@@ -871,9 +859,9 @@
         }
     }
 
-    $param_url = fetch_param('url');
-    $param_id = fetch_param('id');
-    $param_delete = fetch_param('delete');
+    $param_url = filter_input(INPUT_GET, 'url');
+    $param_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_REGEXP, [ 'options' => [ 'regexp' => '/^[0-9a-z]+$/' ]]);
+    $param_delete = filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_BOOL);
     
     update_configuration();
 ?>
