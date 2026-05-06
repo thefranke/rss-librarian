@@ -325,7 +325,23 @@
         file_put_contents($local_feed_file, $dom->saveXML());
     }
 
+    // Create a appropriate HTML tag for an enclosure embedding
+    function make_enclosure_embed($enclosure)
     {
+        if (empty($enclosure) || count($enclosure) != 3) 
+            return '';
+
+        if (str_contains($enclosure[1], "video/"))
+            return '<p><video width="1280" height="720" controls><source src="' .$enclosure[0]. '" type="' .$enclosure[1]. '">Your browser does not support the video tag.</video></p>';
+        else if (str_contains($enclosure[1], "audio/"))
+            return '<p><audio controls><source src="' .$enclosure[0]. '" type="' .$enclosure[1]. '">Your browser does not support the audio tag.</video></p>';
+        else if (str_contains($enclosure[1], "image/"))
+            return '<p><img src="' . $enclosure[0] . '" /></p>';
+        else if (str_contains($enclosure[1], "application/pdf"))
+            return '<p><embed src="' .$enclosure[0]. '" type="' .$enclosure[1]. '" /></p>';
+        
+        return '<p><a href="' .$enclosure[0]. '">' .$enclosure[0]. '</a>';
+    }
 
     // Fetch all meta tags with into a lookup dictionary
     function get_all_meta_tags($html)
@@ -360,6 +376,28 @@
         $mimetype = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         $mimetype = explode(';', $mimetype)[0];
         return $mimetype;
+    }
+
+    // "Extract" binary files
+    function extract_content_binary($url)
+    {
+        $html = '';
+        $enclosure = null;
+        $content_type = fetch_url($url, true);
+
+        if (str_contains($content_type, "text/"))
+            return [];
+
+        $enclosure = [$url, $content_type, 0];
+        $html = make_enclosure_embed($enclosure);
+
+        $exp = explode('/', $url);
+
+        return [
+            'title' => end($exp),
+            'content' => $html,
+            'enclosure' => $enclosure,
+        ];
     }
 
     // Local custom extraction path
@@ -442,6 +480,7 @@
 
         $item = [];
 
+        if (empty($item)) $item = extract_content_binary($url);
         if (empty($item)) $item = extract_content_custom($url);
         if (empty($item)) $item = extract_content_local_readability($url);
         if (empty($item)) $item = extract_content_naive_with_metatags($url);
