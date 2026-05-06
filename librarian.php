@@ -335,12 +335,13 @@
         return [];
     }
 
-    // Fetch content of a URL
-    function fetch_url($url)
+    // Fetch content of a URL or peek into the header to fetch only the mimetype
+    function fetch_url($url, $peek_header = false)
     {
         $cookie_file = sys_get_temp_dir() . '/rsslib_temp_cookies.txt';
         $ch = curl_init($url);
         curl_setopt_array($ch, [
+            CURLOPT_NOBODY         => $peek_header,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 10,
@@ -349,9 +350,16 @@
             CURLOPT_COOKIEFILE     => $cookie_file,
             CURLOPT_COOKIEJAR      => $cookie_file,
             CURLOPT_TIMEOUT        => 15,
+            CURLOPT_MAXFILESIZE    => ($peek_header ? 0 : 1024*100),
         ]);
-        $html = curl_exec($ch);
-        return $html;
+        $data = curl_exec($ch);
+        
+        if (!$peek_header)
+            return $data;
+
+        $mimetype = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $mimetype = explode(';', $mimetype)[0];
+        return $mimetype;
     }
 
     // Local custom extraction path
