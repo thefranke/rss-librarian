@@ -325,10 +325,12 @@
         file_put_contents($local_feed_file, $dom->saveXML());
     }
 
-    // Fetch header of HTML containing any OpenGraph tags to use for meta information
-    function get_opengraph_tags($html)
     {
-        if (preg_match_all('/<meta property="og:([^"]+)"\s*content="([^"]*)"/i', $html, $matches))
+
+    // Fetch all meta tags with into a lookup dictionary
+    function get_all_meta_tags($html)
+    {
+        if (preg_match_all('/<meta (?:property|name|http-equiv)="([^"]+)"\s*content="([^"]*)"/i', $html, $matches))
             return array_combine($matches[1], $matches[2]);
         return [];
     }
@@ -404,37 +406,24 @@
         return [];
     }
 
-    // Remote Fivefilters extraction path
-    function extract_content_fivefilters($url)
-    {
-        $feed_item = fetch_url('https://ftr.fivefilters.net/makefulltextfeed.php?url=' . urlencode($url));
-        if (empty($feed_item)) return [];
-
-        // error handling remove everything until first <
-        $start = strpos($feed_item, '<');
-        $feed_item = substr($feed_item, $start);
-        $xml = simplexml_load_string($feed_item);
-        $ff_item = $xml->channel->item[0];
-
-        if (str_contains($ff_item->description, 'unable to retrieve full-text content')) return [];
-
-        return [
-            'title' => $ff_item->title,
-            'content' => $ff_item->description,
-            'author' => '',
-        ];
-    }
-
-    // Search HTML for meta tags
-    function extract_content_metatags($url)
+    // Fallback solution: Naive body extract with OpenGraph metatags
+    function extract_content_naive_with_metatags($url)
     {
         $html = fetch_url($url);
-        $meta = get_opengraph_tags($html);
+        $meta = get_all_meta_tags($html);
+
+        libxml_use_internal_errors(true);
+        $doc = new DOMDocument();
+        $doc->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_NOWARNING | LIBXML_NOERROR);
+        libxml_clear_errors();
+
+        $bodyNodes = $doc->getElementsByTagName('body');
+        $body = $bodyNodes->item(0);
         
         return [
-            'title' => $meta['title'] ?? '',
-            'content' => $meta['description'] ?? '',
-            'author' => $meta['site_name'] ?? '',
+            'title'   => $meta['og:title']     ?? $meta['twitter:title']  ?? $meta['title'] ?? '',
+            'content' => $doc->saveHTML($body) ?? $meta['og:description'] ?? $meta['twitter:description'] ?? $meta['description'] ?? '',
+            'author'  => $meta['og:site_name'] ?? $meta['twitter:site']   ?? $meta['fediverse:creator']   ?? $meta['author']      ?? '',
         ];
     }
 
@@ -447,8 +436,7 @@
 
         if (empty($item)) $item = extract_content_custom($url);
         if (empty($item)) $item = extract_content_local_readability($url);
-        if (empty($item)) $item = extract_content_fivefilters($url);
-        if (empty($item)) $item = extract_content_metatags($url);
+        if (empty($item)) $item = extract_content_naive_with_metatags($url);
         
         $item['url'] = $url;
         $item['date'] = time();
