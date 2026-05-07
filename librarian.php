@@ -366,7 +366,7 @@
             CURLOPT_COOKIEFILE     => $cookie_file,
             CURLOPT_COOKIEJAR      => $cookie_file,
             CURLOPT_TIMEOUT        => 15,
-            CURLOPT_MAXFILESIZE    => ($peek_header ? 0 : 1024*100),
+            
         ]);
         $data = curl_exec($ch);
         
