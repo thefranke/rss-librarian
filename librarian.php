@@ -422,14 +422,14 @@
     }
 
     // Local Readability.php extraction path
-    function extract_content_local_readability($url)
+    function extract_content_local_readability($url, $html = null)
     {
         $autoload = __DIR__ . '/vendor/autoload.php';
         if (file_exists($autoload))
         {
             require $autoload;
 
-            $html = fetch_url($url);
+            if (empty($html)) $html = fetch_url($url);
 
             // Tidy up HTML
             if (function_exists('tidy_parse_string'))
@@ -461,9 +461,9 @@
     }
 
     // Fallback solution: Naive body extract with OpenGraph metatags
-    function extract_content_naive_with_metatags($url)
+    function extract_content_naive_with_metatags($url, $html = null)
     {
-        $html = fetch_url($url);
+        if (empty($html)) $html = fetch_url($url);
         $meta = get_all_meta_tags($html);
 
         libxml_use_internal_errors(true);
