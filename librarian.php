@@ -376,14 +376,11 @@
             CURLOPT_TIMEOUT        => 15,
             
         ]);
-        $data = curl_exec($ch);
-        
-        if (!$peek_header)
-            return $data;
-
-        $mimetype = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-        $mimetype = explode(';', $mimetype)[0];
-        return $mimetype;
+        $content = curl_exec($ch);
+        $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $content_type = explode(';', $content_type)[0];
+        $content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+        return [$content, $content_type, $content_length];
     }
 
     // "Extract" binary files
@@ -391,12 +388,12 @@
     {
         $html = '';
         $enclosure = null;
-        $content_type = fetch_url($url, true);
+        [$content_data, $content_type, $content_length] = fetch_url($url, true);
 
         if (str_contains($content_type, "text/"))
             return [];
 
-        $enclosure = [$url, $content_type, 0];
+        $enclosure = [$url, $content_type, $content_length];
         $html = make_enclosure_embed($enclosure);
 
         $exp = explode('/', $url);
@@ -429,7 +426,7 @@
         {
             require $autoload;
 
-            if (empty($html)) $html = fetch_url($url);
+            if (empty($html)) [$html, $content_type, $content_length] = fetch_url($url);
 
             // Tidy up HTML
             if (function_exists('tidy_parse_string'))
@@ -463,7 +460,7 @@
     // Fallback solution: Naive body extract with OpenGraph metatags
     function extract_content_naive_with_metatags($url, $html = null)
     {
-        if (empty($html)) $html = fetch_url($url);
+        if (empty($html)) [$html, $content_type, $content_length] = fetch_url($url);
         $meta = get_all_meta_tags($html);
 
         libxml_use_internal_errors(true);
