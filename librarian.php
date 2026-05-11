@@ -443,7 +443,7 @@
 
             try
             {
-                $readability->parse($html);
+                @$readability->parse($html);
 
                 return [
                     'title' => $readability->getTitle(),
