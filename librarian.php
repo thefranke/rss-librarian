@@ -885,7 +885,7 @@
                     if(add_url($param_id, $param_url))
                     {
                         print('<p><a href="' . $param_url . '">' . $param_url . '</a> added</p>');
-                        add_admin_log_item("User " . $param_id . " added:<br>" . $param_url);
+                        add_admin_log_item('User ' . $param_id . ' added:<br><a href="' . $param_url . '">' . $param_url . '</a>');
                     }
                     else
                         print('<p>URL already added!</p>');
