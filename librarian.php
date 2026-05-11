@@ -418,15 +418,17 @@
         return [];
     }
 
-    // Local Readability.php extraction path
-    function extract_content_local_readability($url, $html = null)
+    // Extract text from HTML/structured input using readibility or metatags
+    function extract_content_structured($url, $html = null)
     {
+        if (empty($html)) 
+            [$html, $content_type, $content_length] = fetch_url($url);
+
+        // Local Readability.php extraction path
         $autoload = __DIR__ . '/vendor/autoload.php';
         if (file_exists($autoload))
         {
             require $autoload;
-
-            if (empty($html)) [$html, $content_type, $content_length] = fetch_url($url);
 
             // Tidy up HTML
             if (function_exists('tidy_parse_string'))
@@ -454,13 +456,8 @@
             catch (ParseException $e)
             {}
         }
-        return [];
-    }
 
-    // Fallback solution: Naive body extract with OpenGraph metatags
-    function extract_content_naive_with_metatags($url, $html = null)
-    {
-        if (empty($html)) [$html, $content_type, $content_length] = fetch_url($url);
+        // Fallback solution: Naive body extract with OpenGraph metatags
         $meta = get_all_meta_tags($html);
 
         libxml_use_internal_errors(true);
@@ -472,7 +469,7 @@
         $body = $bodyNodes->item(0);
         
         return [
-            'title'   => $meta['og:title']     ?? $meta['twitter:title']  ?? $meta['title'] ?? '',
+            'title'   => $meta['og:title']     ?? $meta['twitter:title']  ?? $meta['title'] ?? $url,
             'content' => $doc->saveHTML($body) ?? $meta['og:description'] ?? $meta['twitter:description'] ?? $meta['description'] ?? '',
             'author'  => $meta['og:site_name'] ?? $meta['twitter:site']   ?? $meta['fediverse:creator']   ?? $meta['author']      ?? '',
         ];
@@ -487,12 +484,11 @@
 
         if (empty($item)) $item = extract_content_binary($url);
         if (empty($item)) $item = extract_content_custom($url);
-        if (empty($item)) $item = extract_content_local_readability($url);
-        if (empty($item)) $item = extract_content_naive_with_metatags($url);
+        if (empty($item)) $item = extract_content_structured($url);
         
         $item['url'] = $url;
         $item['date'] = time();
-        $item['title'] = empty($item['title']) ? $url : $item['title'];
+        $item['title'] = $item['title'] ?? $url;
 
         if (!$g_config['extract_content'] || empty($item['content']))
             $item['content'] = 'No content available, please enable reader mode for this entry.';
