@@ -30,7 +30,7 @@
         'dir_feeds'                 => 'feeds',
 
         // Instance administrator contact
-        'instance_contact'          => '<a href="https://github.com/thefranke/rss-librarian/issues">Open a Github Issue</a>',
+        'instance_contact'          => '',
 
         // Instance visual customization
         'icon'                      => 'https://raw.githubusercontent.com/Warhammer40kGroup/wh40k-icon/master/src/svgs/librarius-02.svg',
@@ -675,6 +675,7 @@
     // Print message with tools for RSS feed management and instance information
     function show_footer($param_id)
     {
+        global $g_url_librarian;
         global $g_config;
 
         $personal_url = get_personal_url($param_id);
@@ -690,21 +691,22 @@
                 <h2>Your feed</h2>
                 <p>
                     Bookmark your <a href="'. $personal_url .'">personal URL</a><br> 
-                    Subscribe to your <a href="' . $feed_url . '">personal feed</a> with a RSS/Atom feed-reader
+                    Subscribe to your <a href="' . $feed_url . '">personal feed</a> with <a href="https://gist.github.com/thefranke/63853a6f8c499dc97bc17838f6cedcc2#feed-readers">a RSS/Atom feed-reader</a>
                 </p>
 
                 <h2>Tools</h2>
                 <p>
-                    <a href="' . ($g_config['custom_xslt'] === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Feed preview</a>,            
-                    <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate feed</a>, 
-                    <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Feed boomarklet</a>, 
-                    <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple Shortcut</a>
+                    <a href="https://github.com/thefranke/rss-librarian/wiki">The&nbsp;Manual</a>, 
+                    <a href="' . ($g_config['custom_xslt'] === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Preview</a>,            
+                    <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate</a>, 
+                    <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Boomarklet</a>, 
+                    <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple&nbsp;Shortcut</a>
                 </p>');
             else
             print('
                 <h2>What Is This?</h2>
                 <p>
-                    <a href="https://github.com/thefranke/rss-librarian/wiki#how-to-use">Read the wiki!</a>
+                    <a href="https://github.com/thefranke/rss-librarian/wiki">Read the wiki!</a>
                 </p>
                     
                 <p>
@@ -721,15 +723,6 @@
                     reading.
                 </p>
             ');
-
-            print('
-            <h2>Feed-Readers</h2>
-            <p>  
-                <a href="https://capyreader.com/">Capy Reader (Android)</a>, 
-                <a href="https://netnewswire.com/">NetNewsWire (iOS/MacOS)</a>, 
-                <a href="https://www.feedflow.dev/">FeedFlow (Windows/Linux)</a>,
-                <a href="https://nodetics.com/feedbro/">FeedBro (Firefox/Chrome/Brave)</a>
-            </p>');
         }
 
         print('
@@ -740,7 +733,8 @@
                 Max items per feed: ' . $g_config['max_items'] . '<br>
                 Feed format: ' . ($g_config['use_rss_format'] ? 'RSS 2.0' : 'Atom') . '<br>
                 Version: ' .  get_version() . '<br>' .
-                ((!empty($g_config['instance_contact'])) ? 'Contact: ' . $g_config['instance_contact'] : '') . '<br>
+                ((!empty($g_config['instance_contact'])) ? 'Contact: ' . $g_config['instance_contact'] . '<br>': '') . 
+                '<a href="https://github.com/thefranke/rss-librarian/issues/new?body=Your%20description%20here...%0A%0A%60%60%60%0AFTE: ' . $g_config['extract_content'] . '%0AUseRSS: ' . $g_config['use_rss_format'] . '%0AMaxItems: ' . $g_config['max_items'] . '%0AVersion: ' . get_version() . '%60%60%60">Open a Github Issue</a><br>
             </p>
             ' . ((!empty($param_id)) ? '<p><a href="' . $feed_url . '"><svg xmlns="http://www.w3.org/2000/svg" style="width: 2em" fill="currentColor" viewBox="0 0 16 16"><path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"></path><path d="M5.5 12a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m-3-8.5a1 1 0 0 1 1-1c5.523 0 10 4.477 10 10a1 1 0 1 1-2 0 8 8 0 0 0-8-8 1 1 0 0 1-1-1m0 4a1 1 0 0 1 1-1 6 6 0 0 1 6 6 1 1 0 1 1-2 0 4 4 0 0 0-4-4 1 1 0 0 1-1-1"></path></svg></a></p>': '') . '
         </footer>');
@@ -789,7 +783,7 @@
                 <h2>You are about to create a new feed</h2>
                 <p>Please <em>confirm</em> that you have bookmarked:</p>
                 <p>Your <a href="' .$personal_url . '">personal URL</a></p>
-                <p>and subscribed with a feed reader to:</p>
+                <p>and will subscribe with a feed reader to:</p>
                 <p>Your <a href="' .$feed_url . '">personal feed</a></p>
 
                 <form action="' . $g_url_librarian . '">
