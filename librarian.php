@@ -697,7 +697,7 @@
                 <h2>Tools</h2>
                 <p>
                     <a href="https://github.com/thefranke/rss-librarian/wiki">The&nbsp;Manual</a>, 
-                    <a href="' . ($g_config['custom_xslt'] === '' ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Preview</a>,            
+                    <a href="' . (empty($g_config['custom_xslt']) ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Preview</a>,            
                     <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate</a>, 
                     <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Boomarklet</a>, 
                     <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple&nbsp;Shortcut</a>
@@ -914,7 +914,7 @@
             print('<link rel="alternate" type="application/' . (($g_config['use_rss_format']) ? 'rss+xml' : 'atom+xml') . '" title="' . get_title($param_id) . '" href="' . get_feed_url($param_id) . '">');
         } ?>
 
-        <?php if ($g_config['custom_css'] === '') { ?>
+        <?php if (empty($g_config['custom_css'])) { ?>
         <style>
             html {
                 font-family: monospace;
