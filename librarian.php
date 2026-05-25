@@ -259,7 +259,10 @@
     // Read Atom XML item and convert to internal item format
     function read_atom_item($xml_item)
     {
-        $enclosure = empty($xml_item->link) ? null : [$xml_item->link->url, $xml_item->link->type];
+        $enclosure = null;
+        foreach ($xml_item->link as $link)
+            if (!empty($link->rel) && $link->rel == "enclosure")
+                $enclosure = [$link->href, $link->type, $link->length];
         return [
             'url' => $xml_item->id,
             'title' => sanitize_text($xml_item->title),
