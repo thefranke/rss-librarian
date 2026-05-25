@@ -218,7 +218,7 @@
     // Creates an RSS feed entry: https://validator.w3.org/feed/docs/rss2.html, http://purl.org/dc/elements/1.1/
     function make_rss_item($item) 
     {
-        $author_element = !empty($item['author']) ? '<dc:creator>' . $item['author'] . '</dc:creator>' : '';
+        $author_element = !empty($item['author']) ? '<dc:creator>' . sanitize_text($item['author']) . '</dc:creator>' : '';
         $title_element = !empty($item['title']) ? '<title>' . sanitize_text($item['title']) . '</title>' : '';
         $enclosure_element = !empty($item['enclosure']) ? '<enclosure url="' . sanitize_text($item['enclosure'][0]) . '" type="' . $item['enclosure'][1] . '" length="' .$item['enclosure'][2]. '" />' : '';
         return '<item xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -264,7 +264,7 @@
             'url' => $xml_item->id,
             'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->content,
-            'date' => strtotime($xml_item->published),
+            'date' => strtotime($xml_item->updated),
             'author' => sanitize_text($xml_item->author->name),
             'enclosure' => $enclosure,
         ];
@@ -341,7 +341,7 @@
         if (str_contains($enclosure[1], "video/"))
             return '<p><video width="1280" height="720" controls><source src="' .$enclosure[0]. '" type="' .$enclosure[1]. '">Your browser does not support the video tag.</video></p>';
         else if (str_contains($enclosure[1], "audio/"))
-            return '<p><audio controls><source src="' .$enclosure[0]. '" type="' .$enclosure[1]. '">Your browser does not support the audio tag.</video></p>';
+            return '<p><audio controls><source src="' .$enclosure[0]. '" type="' .$enclosure[1]. '">Your browser does not support the audio tag.</audio></p>';
         else if (str_contains($enclosure[1], "image/"))
             return '<p><img src="' . $enclosure[0] . '" /></p>';
         else if (str_contains($enclosure[1], "application/pdf"))
@@ -555,7 +555,7 @@
         $items = read_feed_file($param_id);
         $item = [
             'url' => '',
-            'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d H:m"),
+            'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d H:i"),
             'content' => $message,
             'timestamp' => time(),
             'author' => 'Admin',
@@ -749,7 +749,7 @@
         <header>
             <a href="' . ((!empty($param_id)) ? get_personal_url($param_id) : $g_url_librarian) . '"><img alt="" src="' . $g_config['logo'] . '"></a>
             <h1>' . get_title($param_id) . '</h1>
-            <h3>"Knoweldge is power, store it well."</h3>
+            <h3>"Knowledge is power, store it well."</h3>
             <h3>
                 [<a href="https://github.com/thefranke/rss-librarian">Github</a>]');
 
