@@ -350,7 +350,7 @@
         else if (str_contains($enclosure[1], "application/pdf"))
             return '<p><embed src="' .$enclosure[0]. '" type="' .$enclosure[1]. '" /></p>';
         
-        return '<p><a href="' .$enclosure[0]. '">' .$enclosure[0]. '</a>';
+        return '<p><a href="' .$enclosure[0]. '">' .$enclosure[0]. '</a></p>';
     }
 
     // Fetch all meta tags with into a lookup dictionary
@@ -560,7 +560,7 @@
             'url' => '',
             'title' => 'RSS-Librarian Instance Notice ' . date("Y-m-d H:i"),
             'content' => $message,
-            'timestamp' => time(),
+            'date' => time(),
             'author' => 'Admin',
         ];
         $items = add_item($items, $item);
@@ -702,7 +702,7 @@
                     <a href="https://github.com/thefranke/rss-librarian/wiki">The&nbsp;Manual</a>, 
                     <a href="' . (empty($g_config['custom_xslt']) ? 'https://feedreader.xyz/?url=' . urlencode($feed_url) : $feed_url) . '">Preview</a>,            
                     <a href="https://validator.w3.org/feed/check.cgi?url=' . urlencode($feed_url) . '">Validate</a>, 
-                    <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Boomarklet</a>, 
+                    <a href="javascript:window.location.href=\'' . $personal_url . '&url=\' + window.location.href">Bookmarklet</a>, 
                     <a href="https://www.icloud.com/shortcuts/d047b96550114317beb45bb57466a88f">Apple&nbsp;Shortcut</a>
                 </p>');
             else
