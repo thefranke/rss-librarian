@@ -221,7 +221,7 @@
         $author_element = !empty($item['author']) ? '<dc:creator>' . sanitize_text($item['author']) . '</dc:creator>' : '';
         $title_element = !empty($item['title']) ? '<title>' . sanitize_text($item['title']) . '</title>' : '';
         $enclosure_element = !empty($item['enclosure']) ? '<enclosure url="' . sanitize_text($item['enclosure'][0]) . '" type="' . $item['enclosure'][1] . '" length="' .$item['enclosure'][2]. '" />' : '';
-        return '<item xmlns:dc="http://purl.org/dc/elements/1.1/">
+        return '<item>
             <link>' . sanitize_text($item['url']) . '</link>
             ' . $title_element . '
             <guid isPermaLink="true">' . sanitize_text($item['url']) .'</guid>
