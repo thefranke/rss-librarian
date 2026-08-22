@@ -384,9 +384,9 @@
             CURLOPT_COOKIEFILE     => $cookie_file,
             CURLOPT_COOKIEJAR      => $cookie_file,
             CURLOPT_TIMEOUT        => 15,
-            
         ]);
         $content = curl_exec($ch);
+        if ($content === false) return ["", "", 0];
         $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         $content_type = explode(';', $content_type)[0];
         $content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
