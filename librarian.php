@@ -876,7 +876,7 @@
             // Add or remove URL
             if (!empty($param_id) && !empty($param_url))
             {
-                if ($param_delete == '1')
+                if ($param_delete === true)
                 {
                     if(remove_url($param_id, $param_url))
                         print('<p><a href="' . $param_url . '">' . $param_url . '</a> removed</p>');
