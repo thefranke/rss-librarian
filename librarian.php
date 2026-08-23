@@ -9,7 +9,7 @@
     use fivefilters\Readability\ParseException;
 
     // Base location
-    $g_url_librarian = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
+    $g_url_librarian = 'http' . (isset($_SERVER['HTTPS']) ? 's' : '') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
     $g_url_base = dirname($g_url_librarian);
 
     // Config JSON file to store instance settings
