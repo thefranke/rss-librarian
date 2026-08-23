@@ -56,7 +56,7 @@
     function is_admin($param_id)
     {
         global $g_config;
-        return !empty($param_id) && !empty($g_config['admin_id']) && ($g_config['admin_id'] === $param_id);
+        return !empty($param_id) && !empty($g_config['admin_id']) && (hash_equals($g_config['admin_id'], $param_id));
     }
 
     // Read configuration from JSON file
