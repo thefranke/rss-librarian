@@ -147,6 +147,7 @@
             <feed xmlns="http://www.w3.org/2005/Atom">
                 <link rel="self" href="' .$feed_url . '" />
                 <title>' . $title . '</title>
+                <subtitle>' . $subtitle . '</subtitle>
                 <id>' . $personal_url . '</id>
                 <updated>' . date('Y-m-d\TH:i:s\Z', $ts_updated) . '</updated>
                 <generator uri="' . $g_url_librarian . '" version="1.0">RSS-Librarian</generator>
