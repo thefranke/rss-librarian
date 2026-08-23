@@ -251,7 +251,7 @@
             'url' => $xml_item->guid,
             'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->description,
-            'date' => strtotime($xml_item->pubDate),
+            'date' => strtotime($xml_item->pubDate) ?: time(),
             'author' => $author,
             'enclosure' => $enclosure,
         ];
@@ -268,7 +268,7 @@
             'url' => $xml_item->id,
             'title' => sanitize_text($xml_item->title),
             'content' => $xml_item->content,
-            'date' => strtotime($xml_item->updated),
+            'date' => strtotime($xml_item->updated ?: $xml_item->published) ?: time(),
             'author' => sanitize_text($xml_item->author->name),
             'enclosure' => $enclosure,
         ];
