@@ -373,7 +373,7 @@
     // Fetch content of a URL or peek into the header to fetch only the mimetype
     function fetch_url($url, $peek_header = false)
     {
-        $cookie_file = sys_get_temp_dir() . '/rsslib_temp_cookies.txt';
+        $cookie_file = tempnam(sys_get_temp_dir(), 'rsslib_cookies_');
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_NOBODY          => $peek_header,
@@ -393,6 +393,7 @@
         $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         $content_type = explode(';', $content_type)[0];
         $content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+        @unlink($cookie_file);
         return [$content, $content_type, $content_length];
     }
 
