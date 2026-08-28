@@ -44,6 +44,10 @@
         // Time before feeds are considered abandoned
         'delete_abandoned_after'    => 31536000, // 1 year -> 60*60*24*365
         'delete_bogus_after'        => 7776000, // 3 months -> 60*60*24*30*3
+
+        // External modules
+        'mod_customextractor'       => __DIR__ . '/custom_extractor.php',
+        'mod_readability'           => __DIR__ . '/vendor/autoload.php',
     );
 
     // Create a unique id for users
@@ -422,27 +426,27 @@
     // Local custom extraction path
     function extract_content_custom($url)
     {
-        $customextractor = __DIR__ . '/custom_extractor.php';
-        if (file_exists($customextractor))
+        if (file_exists($g_config['mod_customextractor']))
         {
-            require $customextractor;
+            require $g_config['mod_customextractor'];
             if (function_exists('custom_extractor'))
                 return custom_extractor($url);
         }
         return [];
     }
 
-    // Extract text from HTML/structured input using readibility or metatags
+    // Extract text from HTML/structured input using readability or metatags
     function extract_content_structured($url, $html = null)
     {
+        global $g_config;
+
         if (empty($html)) 
             [$html, $content_type, $content_length] = fetch_url($url);
 
         // Local Readability.php extraction path
-        $autoload = __DIR__ . '/vendor/autoload.php';
-        if (file_exists($autoload))
+        if (file_exists($g_config['mod_readability']))
         {
-            require $autoload;
+            require $g_config['mod_readability'];
 
             // Tidy up HTML
             if (function_exists('tidy_parse_string'))
@@ -492,8 +496,6 @@
     // Extract content using the first successful method, otherwise just return URL
     function extract_content($url)
     {
-        global $g_config;
-
         $item = [];
 
         if (empty($item)) $item = extract_content_binary($url);
@@ -737,6 +739,8 @@
             <p>
                 # of hosted feeds: ' . count_feeds() . '<br>
                 Full-text extraction: ' . ($g_config['extract_content'] ? 'Enabled' : 'Disabled') . '<br>
+                Readability: ' . (file_exists($g_config['mod_readability']) ? 'Enabled' : 'Disabled') . '<br>
+                Custom extraction: ' . (file_exists($g_config['mod_customextractor']) ? 'Enabled' : 'Disabled') . '<br>
                 Max items per feed: ' . $g_config['max_items'] . '<br>
                 Feed format: ' . ($g_config['use_rss_format'] ? 'RSS 2.0' : 'Atom') . '<br>
                 Version: ' .  get_version() . '<br>' .
