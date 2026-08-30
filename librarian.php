@@ -735,7 +735,7 @@
         }
 
         print('
-            <h2>Instance Info</h2>
+            <h2 id="instance">Instance Info</h2>
             <p>
                 # of hosted feeds: ' . count_feeds() . '<br>
                 Full-text extraction: ' . ($g_config['extract_content'] ? 'Enabled' : 'Disabled') . '<br>
