@@ -498,6 +498,8 @@
     // Extract content using the first successful method, otherwise just return URL
     function extract_content($url)
     {
+        global $g_config;
+
         $item = [];
 
         if (empty($item)) $item = extract_content_binary($url);
