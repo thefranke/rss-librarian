@@ -426,6 +426,8 @@
     // Local custom extraction path
     function extract_content_custom($url)
     {
+        global $g_config;
+
         if (file_exists($g_config['mod_customextractor']))
         {
             require $g_config['mod_customextractor'];
