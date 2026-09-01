@@ -43,10 +43,10 @@
 
         // Time before feeds are considered abandoned
         'delete_abandoned_after'    => 31536000, // 1 year -> 60*60*24*365
-        'delete_bogus_after'        => 7776000, // 3 months -> 60*60*24*30*3
+        'delete_bogus_after'        => 7776000,  // 3 months -> 60*60*24*30*3
 
         // External modules
-        'mod_customextractor'       => __DIR__ . '/custom_extractor.php',
+        'mod_custom_extractor'      => __DIR__ . '/custom_extractor.php',
         'mod_readability'           => __DIR__ . '/vendor/autoload.php',
     );
 
@@ -83,6 +83,24 @@
             $g_config['admin_id'] = make_id();
 
         file_put_contents($g_config_file, json_encode($g_config, JSON_PRETTY_PRINT));
+    }
+
+    // Helper to load readability and custom extraction modules
+    function load_ext_modules()
+    {
+        global $g_config;
+        $mods = ['mod_custom_extractor', 'mod_readability'];
+        foreach ($mods as $mod)
+        {
+            try
+            {
+                if (is_file($g_config[$mod]))
+                    require_once $g_config[$mod];
+            } 
+            catch (\Throwable $e) 
+            {
+            }
+        }
     }
 
     // Sanitize a string to remove any invalid characters
@@ -427,13 +445,8 @@
     function extract_content_custom($url)
     {
         global $g_config;
-
-        if (file_exists($g_config['mod_customextractor']))
-        {
-            require $g_config['mod_customextractor'];
-            if (function_exists('custom_extractor'))
-                return custom_extractor($url);
-        }
+        if (function_exists('custom_extractor'))
+            return custom_extractor($url);
         return [];
     }
 
@@ -446,10 +459,8 @@
             [$html, $content_type, $content_length] = fetch_url($url);
 
         // Local Readability.php extraction path
-        if (file_exists($g_config['mod_readability']))
+        if (class_exists('fivefilters\Readability\Readability'))
         {
-            require $g_config['mod_readability'];
-
             // Tidy up HTML
             if (function_exists('tidy_parse_string'))
             {
@@ -743,8 +754,8 @@
             <p>
                 # of hosted feeds: ' . count_feeds() . '<br>
                 Full-text extraction: ' . ($g_config['extract_content'] ? 'Enabled' : 'Disabled') . '<br>
-                Readability: ' . (file_exists($g_config['mod_readability']) ? 'Enabled' : 'Disabled') . '<br>
-                Custom extraction: ' . (file_exists($g_config['mod_customextractor']) ? 'Enabled' : 'Disabled') . '<br>
+                Readability: ' . (class_exists('fivefilters\Readability\Readability') ? 'Enabled' : 'Disabled') . '<br>
+                Custom extraction: ' . (function_exists('custom_extractor') ? 'Enabled' : 'Disabled') . '<br>
                 Max items per feed: ' . $g_config['max_items'] . '<br>
                 Feed format: ' . ($g_config['use_rss_format'] ? 'RSS 2.0' : 'Atom') . '<br>
                 Version: ' .  get_version() . '<br>' .
@@ -917,6 +928,7 @@
     $param_delete = filter_input(INPUT_GET, 'delete', FILTER_VALIDATE_BOOL);
     
     update_configuration();
+    load_ext_modules();
 ?>
 
 <!DOCTYPE html>
