@@ -379,17 +379,16 @@
     // Fetch all meta tags with into a lookup dictionary
     function get_all_meta_tags($html)
     {
+        $result = [];
         if (preg_match_all('/<meta (?:property|name|http-equiv)="([^"]+)"\s*content="([^"]*)"/i', $html, $matches))
         {
-            $result = [];
             foreach ($matches[1] as $i => $key)
             {
-                $val = $matches[2][$i];
-                array_key_exists($key, $result) ? $result[$key] = rtrim($result[$key]) . '; ' . trim($val) : $result[$key] = $val;
+                $val = trim($matches[2][$i]);
+                array_key_exists($key, $result) ? $result[$key] .= '; ' . $val : $result[$key] = $val;
             }
-            return $result;
         }
-        return [];
+        return $result;
     }
 
     // Fetch content of a URL or peek into the header to fetch only the mimetype
