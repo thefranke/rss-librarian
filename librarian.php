@@ -418,7 +418,7 @@
         $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         $content_type = explode(';', $content_type)[0];
         $content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
-        @unlink($cookie_file);
+        if (empty($g_config['cookie_file'])) @unlink($cookie_file);
         return [$content, $content_type, $content_length];
     }
 
