@@ -41,6 +41,9 @@
         // Admin ID to attach instance messages to all feeds
         'admin_id'                  => '',
 
+        // An exported cookie file to access walled content
+        'cookie_file'               => '',
+
         // Time before feeds are considered abandoned
         'delete_abandoned_after'    => 31536000, // 1 year -> 60*60*24*365
         'delete_bogus_after'        => 7776000,  // 3 months -> 60*60*24*30*3
@@ -394,7 +397,8 @@
     // Fetch content of a URL or peek into the header to fetch only the mimetype
     function fetch_url($url, $peek_header = false)
     {
-        $cookie_file = tempnam(sys_get_temp_dir(), 'rsslib_cookies_');
+        global $g_config;
+        $cookie_file = $g_config['cookie_file'] ?? tempnam(sys_get_temp_dir(), 'rsslib_cookies_');
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_NOBODY          => $peek_header,
