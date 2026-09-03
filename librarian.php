@@ -468,19 +468,15 @@
                 $html = $tidy->value;
             }
 
-            $readability = new Readability(new Configuration([
-                'fixRelativeURLs' => true,
-                'originalURL' => $url,
-            ]));
-
             try
             {
-                @$readability->parse($html);
+                $readability = new Readability(fixRelativeURLs: true, originalURL: $url);
+                $article = @$readability->parse($html);
 
                 return [
-                    'title' => $readability->getTitle(),
-                    'content' => $readability->getContent(),
-                    'author' => $readability->getAuthor(),
+                    'title' => $article->title,
+                    'content' => $article->content,
+                    'author' => $article->byline,
                 ];
             }
             catch (ParseException $e)
