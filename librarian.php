@@ -414,11 +414,11 @@
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS, 
         ]) ;
         $content = curl_exec($ch);
+        if (empty($g_config['cookie_file'])) @unlink($cookie_file);
         if ($content === false) return ["", "", 0];
         $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         $content_type = explode(';', $content_type)[0];
         $content_length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
-        if (empty($g_config['cookie_file'])) @unlink($cookie_file);
         return [$content, $content_type, $content_length];
     }
 
