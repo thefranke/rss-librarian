@@ -227,7 +227,7 @@
     {
         $datef = date('Y-m-d\TH:i:s\Z', $item['date'] ?? time());
         $author_element = !empty($item['author']) ? '<author><name>' . sanitize_text($item['author']) . '</name></author>' : '';
-        $enclosure_element = !empty($item['enclosure']) ? '<link rel="enclosure" href="' .sanitize_text($item['enclosure'][0]). '" type="' .$item['enclosure'][1]. '" length="' .$item['enclosure'][2]. '" />' : '';
+        $enclosure_element = !empty($item['enclosure']) ? '<link rel="enclosure" href="' .sanitize_text($item['enclosure'][0]). '" type="' . $item['enclosure'][1] . '" length="' . $item['enclosure'][2] . '" />' : '';
         return '<entry>
             <title>' . sanitize_text($item['title']) . '</title>
             <id>' . sanitize_text($item['url']) .'</id>
@@ -246,7 +246,7 @@
     {
         $author_element = !empty($item['author']) ? '<dc:creator>' . sanitize_text($item['author']) . '</dc:creator>' : '';
         $title_element = !empty($item['title']) ? '<title>' . sanitize_text($item['title']) . '</title>' : '';
-        $enclosure_element = !empty($item['enclosure']) ? '<enclosure url="' . sanitize_text($item['enclosure'][0]) . '" type="' . $item['enclosure'][1] . '" length="' .$item['enclosure'][2]. '" />' : '';
+        $enclosure_element = !empty($item['enclosure']) ? '<enclosure url="' . sanitize_text($item['enclosure'][0]) . '" type="' . $item['enclosure'][1] . '" length="' . $item['enclosure'][2] . '" />' : '';
         return '<item xmlns:dc="http://purl.org/dc/elements/1.1/">
             <link>' . sanitize_text($item['url']) . '</link>
             ' . $title_element . '
@@ -368,15 +368,15 @@
             return '';
 
         if (str_contains($enclosure[1], "video/"))
-            return '<p><video width="1280" height="720" controls><source src="' .$enclosure[0]. '" type="' .$enclosure[1]. '">Your browser does not support the video tag.</video></p>';
+            return '<p><video width="1280" height="720" controls><source src="' . sanitize_text($enclosure[0]) . '" type="' . sanitize_text($enclosure[1]) . '">Your browser does not support the video tag.</video></p>';
         else if (str_contains($enclosure[1], "audio/"))
-            return '<p><audio controls><source src="' .$enclosure[0]. '" type="' .$enclosure[1]. '">Your browser does not support the audio tag.</audio></p>';
+            return '<p><audio controls><source src="' . sanitize_text($enclosure[0]) . '" type="' . sanitize_text($enclosure[1]) . '">Your browser does not support the audio tag.</audio></p>';
         else if (str_contains($enclosure[1], "image/"))
-            return '<p><img src="' . $enclosure[0] . '" /></p>';
+            return '<p><img src="' . sanitize_text($enclosure[0]) . '" /></p>';
         else if (str_contains($enclosure[1], "application/pdf"))
-            return '<p><embed src="' .$enclosure[0]. '" type="' .$enclosure[1]. '" /></p>';
+            return '<p><embed src="' . sanitize_text($enclosure[0]). '" type="' . sanitize_text($enclosure[1]) . '" /></p>';
         
-        return '<p><a href="' .$enclosure[0]. '">' .$enclosure[0]. '</a></p>';
+        return '<p><a href="' . sanitize_text($enclosure[0]) . '">' . sanitize_text($enclosure[0]) . '</a></p>';
     }
 
     // Fetch all meta tags with into a lookup dictionary
@@ -688,7 +688,7 @@
 
         foreach($items as $item)
             print('
-                <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item['url']). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' .$item['url']. '" target="_blank">' . $item['title'] . '</a></li>');
+                <li><a href="?id=' .$param_id. '&delete=1&url=' .urlencode($item['url']). '" onclick="return confirm(\'Delete?\')">&#10060;</a> <a href="' . sanitize_text($item['url']) . '" target="_blank" rel="noreferrer">' . sanitize_text($item['title']) . '</a></li>');
 
         print('
             </ol>
@@ -815,7 +815,7 @@
                 <p>Your <a href="' .$feed_url . '">personal feed</a></p>
 
                 <form action="' . $g_url_librarian . '">
-                    <input type="hidden" id="url" name="url" value="' . $param_url . '">
+                    <input type="hidden" id="url" name="url" value="' . sanitize_text($param_url) . '">
                     <input type="hidden" id="id"  name="id" value="' . $param_id . '">
                     <input type="submit" value="Confirm">
                 </form>
@@ -849,7 +849,7 @@
                 ');
 
                 foreach($abandoned_feeds as $abandoned)
-                    print('<li>' . $abandoned . '</li>');
+                    print('<li>' . sanitize_text($abandoned) . '</li>');
 
                 print('
                     </ul>
@@ -872,7 +872,7 @@
                 }
 
                 print('<section><h2>Message sent to ' . count($feeds) . ' feeds.</h2></section>');
-                add_admin_log_item('Message sent to ' . count($feeds) . ' feeds:<br>' . $param_url);
+                add_admin_log_item('Message sent to ' . count($feeds) . ' feeds:<br>' . sanitize_text($param_url));
             }
             else if (!empty($param_delete))
             {
@@ -904,14 +904,14 @@
                 if ($param_delete === true)
                 {
                     if(remove_url($param_id, $param_url))
-                        print('<p><a href="' . $param_url . '">' . $param_url . '</a> removed</p>');
+                        print('<p><a href="' . sanitize_text($param_url) . '">' . sanitize_text($param_url) . '</a> removed</p>');
                 }
                 else
                 {
                     if(add_url($param_id, $param_url))
                     {
-                        print('<p><a href="' . $param_url . '">' . $param_url . '</a> added</p>');
-                        add_admin_log_item('User ' . $param_id . ' added:<br><a href="' . $param_url . '">' . $param_url . '</a>');
+                        print('<p><a href="' . sanitize_text($param_url) . '">' . sanitize_text($param_url) . '</a> added</p>');
+                        add_admin_log_item('User ' . $param_id . ' added:<br><a href="' . sanitize_text($param_url) . '">' . sanitize_text($param_url) . '</a>');
                     }
                     else
                         print('<p>URL already added!</p>');
