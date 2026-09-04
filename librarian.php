@@ -531,25 +531,17 @@
     {
         $items = read_feed_file($param_id);
 
-        $i = 0;
-        $found = false;
-        foreach($items as $item)
+        foreach($items as $i => $item)
         {
             if ($item['url'] == $param_url)
             {
                 unset($items[$i]);
-                $found = true;
-                break;
+                $items = array_values($items);
+                write_feed_file($param_id, $items);
+                return true;
             }
-            $i++;
         }
 
-        if ($found)
-        {
-            write_feed_file($param_id, $items);
-            return true;
-        }
-        
         return false;
     }
 
