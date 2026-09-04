@@ -499,9 +499,9 @@
         $body = $bodyNodes->item(0);
         
         return [
-            'title'   => $meta['og:title']            ?? $meta['twitter:title']  ?? $meta['title'] ?? $url,
-            'content' => empty($doc->saveHTML($body)) ?? $meta['og:description'] ?? $meta['twitter:description'] ?? $meta['description'] ?? '',
-            'author'  => $meta['og:site_name']        ?? $meta['twitter:site']   ?? $meta['fediverse:creator']   ?? $meta['author']      ?? '',
+            'title'   => $meta['og:title']     ?? $meta['twitter:title']  ?? $meta['title'] ?? $url,
+            'content' => $doc->saveHTML($body) ?: $meta['og:description'] ?? $meta['twitter:description'] ?? $meta['description'] ?? '',
+            'author'  => $meta['og:site_name'] ?? $meta['twitter:site']   ?? $meta['fediverse:creator']   ?? $meta['author']      ?? '',
         ];
     }
 
