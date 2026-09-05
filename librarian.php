@@ -461,23 +461,25 @@
         if (empty($html)) 
             [$html, $content_type, $content_length] = fetch_url($url);
 
+        $meta = get_all_meta_tags($html);
+
+        // Tidy up HTML
+        if (function_exists('tidy_parse_string'))
+        {
+            $tidy = tidy_parse_string($html, array(), 'UTF8');
+            $tidy->cleanRepair();
+            $html = $tidy->value;
+        }
+
         // Local Readability.php extraction path
+        $rdata = [];
         if (class_exists('fivefilters\Readability\Readability'))
         {
-            // Tidy up HTML
-            if (function_exists('tidy_parse_string'))
-            {
-                $tidy = tidy_parse_string($html, array(), 'UTF8');
-                $tidy->cleanRepair();
-                $html = $tidy->value;
-            }
-
             try
             {
                 $readability = new Readability(fixRelativeURLs: true, originalURL: $url);
                 $article = @$readability->parse($html);
-
-                return [
+                $rdata = [
                     'title' => $article->title,
                     'content' => $article->content,
                     'author' => $article->byline,
@@ -487,21 +489,22 @@
             {}
         }
 
-        // Fallback solution: Naive body extract with OpenGraph metatags
-        $meta = get_all_meta_tags($html);
-
-        libxml_use_internal_errors(true);
-        $doc = new DOMDocument();
-        $doc->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_NOWARNING | LIBXML_NOERROR);
-        libxml_clear_errors();
-
-        $bodyNodes = $doc->getElementsByTagName('body');
-        $body = $bodyNodes->item(0);
+        // Fallback solution: Naive body extraction
+        if (!isset($rdata['content']) || empty($rdata['content']))
+        {
+            libxml_use_internal_errors(true);
+            $doc = new DOMDocument();
+            $doc->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_NOWARNING | LIBXML_NOERROR);
+            libxml_clear_errors();
+            $bodyNodes = $doc->getElementsByTagName('body');
+            $body = $bodyNodes->item(0);
+            $rdata['content'] = $doc->saveHTML($body) ?: '';
+        }
         
         return [
-            'title'   => $meta['og:title']     ?? $meta['twitter:title']  ?? $meta['title'] ?? $url,
-            'content' => $doc->saveHTML($body) ?: $meta['og:description'] ?? $meta['twitter:description'] ?? $meta['description'] ?? '',
-            'author'  => $meta['og:site_name'] ?? $meta['twitter:site']   ?? $meta['fediverse:creator']   ?? $meta['author']      ?? '',
+            'title'   => ($rdata['title']   ?? '') ?: ($meta['og:title']       ?? '') ?: ($meta['twitter:title']       ?? '') ?: ($meta['title']             ?? '') ?: $url,
+            'content' => ($rdata['content'] ?? '') ?: ($meta['og:description'] ?? '') ?: ($meta['twitter:description'] ?? '') ?: ($meta['description']       ?? '') ?: '',
+            'author'  => ($rdata['author']  ?? '') ?: ($meta['og:site_name']   ?? '') ?: ($meta['twitter:site']        ?? '') ?: ($meta['fediverse:creator'] ?? '') ?: ($meta['author'] ?? '') ?: '',
         ];
     }
 
