@@ -225,7 +225,7 @@
     // Creates an Atom feed entry: https://validator.w3.org/feed/docs/atom.html
     function make_atom_item($item)
     {
-        $datef = date('Y-m-d\TH:i:s\Z', $item['date'] ?? time());
+        $datef = date('Y-m-d\TH:i:s\Z', ($item['date'] ?? '') ?: time());
         $author_element = !empty($item['author']) ? '<author><name>' . sanitize_text($item['author']) . '</name></author>' : '';
         $enclosure_element = !empty($item['enclosure']) ? '<link rel="enclosure" href="' .sanitize_text($item['enclosure'][0]). '" type="' . $item['enclosure'][1] . '" length="' . $item['enclosure'][2] . '" />' : '';
         return '<entry>
@@ -253,7 +253,7 @@
             <guid isPermaLink="true">' . sanitize_text($item['url']) .'</guid>
             <description>' . sanitize_text($item['content']) . '</description>
             ' . $author_element . '
-            <pubDate>' . date('D, d M Y H:i:s O', $item['date'] ?? time()) . '</pubDate>
+            <pubDate>' . date('D, d M Y H:i:s O', ($item['date'] ?? '') ?: time()) . '</pubDate>
             ' . $enclosure_element . '
         </item>';
     }
@@ -398,7 +398,7 @@
     function fetch_url($url, $peek_header = false)
     {
         global $g_config;
-        $cookie_file = $g_config['cookie_file'] ?? tempnam(sys_get_temp_dir(), 'rsslib_cookies_');
+        $cookie_file = ($g_config['cookie_file'] ?? '') ?: tempnam(sys_get_temp_dir(), 'rsslib_cookies_');
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_NOBODY          => $peek_header,
@@ -521,7 +521,7 @@
         
         $item['url'] = $url;
         $item['date'] = time();
-        $item['title'] = $item['title'] ?? $url;
+        $item['title'] = ($item['title'] ?? '') ?: $url;
 
         if (!$g_config['extract_content'] || empty($item['content']))
             $item['content'] = 'No content available, please enable reader mode for this entry.';
