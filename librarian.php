@@ -521,7 +521,6 @@
         
         $item['url'] = $url;
         $item['date'] = time();
-        $item['title'] = ($item['title'] ?? '') ?: $url;
 
         if (!$g_config['extract_content'] || empty($item['content']))
             $item['content'] = 'No content available, please enable reader mode for this entry.';
