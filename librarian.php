@@ -136,7 +136,7 @@
     function get_version()
     {
         $f = basename(__FILE__);
-        return date('Y-m-d', filemtime($f)) . '-' . substr(hash_file('sha256', $f), 0, 7);
+        return 'two-' . date('Y-m-d', filemtime($f)) . '-' . substr(hash_file('sha256', $f), 0, 7);
     }
 
     // Produce path for local feed file
